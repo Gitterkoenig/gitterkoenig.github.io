@@ -200,6 +200,35 @@
   nav.tabs button.on { color: var(--orange); }
   .toast { position: fixed; left: 50%; bottom: calc(var(--tabs) + 18px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); opacity: 0; transition: .25s; background: #f3f3f5; color: #111; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; z-index: 40; pointer-events: none; }
   .toast.on { opacity: 1; transform: translateX(-50%); }
+  /* ---------- LIVE-Leiste, echte Fotos, Knast-Plan, Fahndungsplakat (22.11.) ---------- */
+  .livebar { display: none; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin: 12px 0 0; padding: 10px 12px; border-radius: 14px; background: #1a0e10; border: 1px solid rgba(255,59,59,.35); font: 700 13px var(--body); }
+  .livebar.on { display: flex; }
+  .livebar .lv { display: inline-flex; align-items: center; gap: 6px; color: #fff; }
+  .livebar .lv::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--red); animation: blink 1.1s infinite; }
+  .livebar .cam { cursor: pointer; color: var(--orange2); }
+  .livebar .ld { color: var(--yellow); }
+  .livebar.alarm { background: linear-gradient(90deg, #5a0b0b, #2a0808); border-color: var(--red); animation: alarm 1s infinite; }
+  @keyframes alarm { 50% { box-shadow: 0 0 22px rgba(255,59,59,.6) } }
+  .gal { display: grid; grid-auto-flow: column; grid-auto-columns: 64%; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+  .gal .ph { scroll-snap-align: start; position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line2); background: #000; cursor: pointer; }
+  .gal .ph img { display: block; width: 100%; aspect-ratio: 9 / 8; object-fit: cover; }
+  .gal .ph .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 10px 8px; background: linear-gradient(transparent, rgba(0,0,0,.88)); font: 700 13px var(--body); }
+  .gal .ph .cap small { display: block; color: var(--muted); font-weight: 600; }
+  .plan { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); background: #0d0d11; padding: 10px; }
+  .plan svg { display: block; }
+  .plan rect[data-c] { cursor: pointer; }
+  .plan .leg { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font: 600 12px var(--body); color: var(--muted); }
+  .plan .leg i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .realfoto { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line2); margin-top: 14px; }
+  .realfoto img { display: block; width: 100%; aspect-ratio: 9 / 8; object-fit: cover; }
+  .realfoto .badge { position: absolute; left: 10px; top: 10px; padding: 5px 9px; border-radius: 8px; background: rgba(0,0,0,.72); font: 800 11px var(--body); letter-spacing: 1px; }
+  .realfoto .badge.live { background: var(--red); animation: blink 1.1s infinite; }
+  .crime { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,59,59,.10); border: 1px dashed rgba(255,59,59,.45); font: 700 14px var(--body); }
+  .crime small { display: block; font: 800 10px var(--body); letter-spacing: 1.5px; color: #ff8a8a; margin-bottom: 2px; }
+  .poster { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 16px; background: rgba(0,0,0,.86); }
+  .poster.on { display: flex; }
+  .poster canvas { max-height: 70vh; max-width: 100%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+  .poster .row2 { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .skel { height: 120px; border-radius: 16px; background: linear-gradient(90deg, #17171c, #202028, #17171c); background-size: 200% 100%; animation: sk 1.2s infinite; }
   @keyframes sk { to { background-position: -200% 0 } }
 </style>
@@ -215,6 +244,7 @@
     <a id="live" class="live" href="https://www.tiktok.com/@gitterkoenig/live" target="_blank" rel="noopener">Offline</a>
   </div>
 </header>
+<div class="wrap"><div id="liveBar" class="livebar" aria-live="polite"></div></div>
 
 <main class="wrap">
   <!-- Übersicht -->
@@ -241,6 +271,12 @@
 
     <h2>Meistgesucht <small><a href="#rang">Ganze Liste</a></small></h2>
     <div class="podium" id="podiumHome"></div>
+
+    <h2>Live aus der Knast-Kamera <small>echte Fotos</small></h2>
+    <div class="gal" id="gal"><div class="note">Sobald die Stream-Kamera in eine Zelle schaut, erscheint hier ein echtes Foto.</div></div>
+
+    <h2>Knast-Plan <small id="planInfo"></small></h2>
+    <div class="plan" id="plan"><div class="skel" style="height:150px"></div></div>
 
     <h2>Gerade passiert</h2>
     <div class="feed" id="feed"><div class="skel" style="height:56px"></div></div>
@@ -301,6 +337,10 @@
   <button data-tab="regeln"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>So geht's</button>
 </div></nav>
 <div class="toast" id="toast"></div>
+<div class="poster" id="poster" role="dialog" aria-label="Fahndungsplakat">
+  <canvas id="posterCv" width="1080" height="1920"></canvas>
+  <div class="row2"><button class="btn small" id="pShare" type="button">Teilen</button><button class="btn small ghost" id="pSave" type="button">Bild speichern</button><button class="btn small ghost" id="pClose" type="button">Schließen</button></div>
+</div>
 
 <script>
 (() => {
@@ -316,6 +356,11 @@
   const toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200) }
   // nur neu zeichnen, wenn sich wirklich etwas geändert hat (sonst flackern Bilder und Balken alle paar Sekunden)
   const put = (el, html) => { if (el && el._h !== html) { el._h = html; el.innerHTML = html; return true } return false }
+  const clock = t => new Date(t).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+  // Tatvorwurf fürs Fahndungsplakat (22.11.): je Name immer derselbe, nur Spaß – nichts mit Likes oder Geschenken
+  const CRIMES = ['Hat im Hofgang den letzten Döner geklaut', 'Wollte mit einem Plastiklöffel ausbrechen', 'Hat Momo beim Zählappell ausgelacht', 'Zu viel Aura für eine einzige Zelle', 'Hat den Wärter mit Tee bestochen', 'Hat die Sirene als Klingelton benutzt', 'Hat sich mit Pappmütze als Wärter verkleidet', 'Wurde beim Tunnelgraben mit dem Teelöffel erwischt', 'Hat im Speisesaal zu laut geschmatzt', 'Hat die Gitter poliert, bis alle geblendet waren', 'Hat dem König die Krone abgeguckt', 'Hat beim Hofgang Breakdance gemacht – ohne Erlaubnis', 'Hat das Brot im Loch versteckt', 'Hat Cousin Tarik am Telefon die Wahrheit gesagt', 'Hat die Zellennummer als Rap auswendig gelernt', 'Hat beim Massenausbruch zuerst die Snacks gerettet']
+  const crimeOf = n => { let h = 7; for (const ch of String(n || '').toLowerCase()) h = (h * 31 + ch.codePointAt(0)) >>> 0; return CRIMES[h % CRIMES.length] }
+  let meCell = null; let meCellFor = ''; let planNames = {}; let lastCard = null
 
   // Woher die Zahlen kommen: dieselbe Adresse (Tunnel) – oder, auf GitHub Pages, die Adresse aus adresse.json
   let API = ''
@@ -416,6 +461,9 @@
         : '<div class="note">Der Thron ist gerade leer. Wer Platz 1 holt, wird Gitterkönig.</div>')
       put($('podiumHome'), podium(d.top3 || []))
       put($('feed'), (d.news || []).length ? d.news.map(n => `<div class="ev"><div class="ic">${n.kind === 'cell' ? '🔑' : n.flucht ? '🏃' : '⬆️'}</div><div class="tx">${n.kind === 'cell' ? `<b>${esc(n.nick || n.name)}</b> bezieht Zelle ${n.cell}` : `<b>${esc(n.nick || n.name)}</b> ist jetzt Stufe ${n.level} · ${esc(n.levelName)}${n.flucht ? ' (Fluchtbeute)' : ''}`}</div><time>${ago(n.t)}</time></div>`).join('') : '<div class="note">Noch ist es ruhig im Block.</div>')
+      put($('gal'), (d.fotos || []).length ? d.fotos.map(f => `<div class="ph" data-name="${esc(f.name.replace(/^@/, ''))}"><img src="${esc(API + f.url)}" alt="Zelle ${f.cell}" loading="lazy"><div class="cap">${esc(f.nick || f.name)} · Zelle ${f.cell}<small>Stufe ${f.level} · ${esc(f.levelName)} · ${clock(f.t)} Uhr</small></div></div>`).join('')
+        : '<div class="note">Sobald die Stream-Kamera in eine Zelle schaut, erscheint hier ein echtes Foto.</div>')
+      if (!loadInfo.planAt || Date.now() - loadInfo.planAt > 11000) { loadInfo.planAt = Date.now(); loadPlan() }
       $('updated').textContent = 'Stand: ' + new Date(d.at || Date.now()).toLocaleTimeString('de-DE')
     } catch (_) { $('updated').textContent = 'Gerade keine Verbindung zum Knast – gleich nochmal.' }
   }
@@ -436,6 +484,7 @@
       const firstTime = box.dataset.for !== me
       box.dataset.for = me
       if (d.found) {
+        lastCard = d.p; meCell = d.p.cell; meCellFor = me
         if (firstTime) remember(d.p.name.replace(/^@/, ''))
         const pct = Math.round((d.p.next ? d.p.next.frac : 1) * 100)
         // (beim ersten Mal läuft der Balken von 0 hoch, beim Auffrischen steht er gleich richtig)
@@ -472,14 +521,17 @@
         </div>
       </div>
       <div class="prog">${prog}</div>
-      <div class="cellpic">${cellSvg(p.level, 'me')}<div class="cap"><span>Deine Zelle</span><span>${esc(p.cellTitle)}</span></div></div>
+      <div class="crime"><small>TATVORWURF</small>${esc(crimeOf(p.name))}</div>
+      ${p.foto ? `<div class="realfoto"><img src="${esc(API + p.foto.url)}" alt="Echtes Foto deiner Zelle"><span class="badge${p.onCam ? ' live' : ''}">${p.onCam ? '● GERADE LIVE IM STREAM' : '📷 ECHTES FOTO · ' + clock(p.foto.t) + ' UHR'}</span></div>` : ''}
+      <div class="cellpic">${cellSvg(p.level, 'me')}<div class="cap"><span>${p.foto ? 'Deine Stufe als Zeichnung' : 'Deine Zelle'}</span><span>${esc(p.cellTitle)}</span></div></div>
+      ${!p.foto && p.cell != null ? `<div class="note" style="margin-top:8px">${p.onCam ? '🎥 Die Kamera ist gerade bei dir – gleich gibt es hier ein echtes Foto.' : '📷 Noch kein echtes Foto – sobald die Stream-Kamera in deine Zelle schaut, erscheint es hier.'}</div>` : ''}
       <div class="facts">
         <div><b class="num">${fmt(p.points)}</b><span>Macht-Punkte</span></div>
         <div><b class="num">${p.level}/20</b><span>Stufe</span></div>
         <div><b>${p.rank ? fmt(p.rank) + '.' : '–'}</b><span>Platz${p.of ? ' von ' + fmt(p.of) : ''}</span></div>
         <div><b>${day(p.since)}</b><span>Dabei seit</span></div>
       </div>
-      <div class="actions"><a class="btn small" href="#rang">In der Rangliste</a><button class="btn small ghost" id="share" type="button">Link teilen</button></div>
+      <div class="actions"><button class="btn small" id="plakat" type="button">🚨 Fahndungsplakat</button><button class="btn small ghost" id="share" type="button">Link teilen</button><a class="btn small ghost" href="#rang">Rangliste</a></div>
     </div>`
   }
   document.addEventListener('click', async e => {
@@ -517,8 +569,112 @@
     } catch (_) {}
   }
 
+  // ------------------------------------------------------------ LIVE-Leiste (22.11.): live?, Zuschauer, Kamera, Ausbruch
+  async function loadLive () {
+    try {
+      const l = await get('/api/live')
+      const hdr = $('live'); hdr.classList.toggle('on', !!l.on); hdr.textContent = l.on ? 'Live' : 'Offline'
+      const bar = $('liveBar')
+      if (!l.on) { bar.className = 'livebar'; return }
+      const c = l.cam
+      const cam = c && !c.empty ? `<span class="cam" data-name="${esc(String(c.name || '').replace(/^@/, ''))}">🎥 Kamera bei Zelle ${c.cell} · ${esc(c.nick || c.name)}</span>`
+        : c ? `<span>🎥 Kamera bei Zelle ${c.cell}</span>` : '<span>🎥 Kamera fliegt durch die Halle</span>'
+      const ld = l.lockdown ? '<span class="ld">🚨 MASSENAUSBRUCH – schreib „Flucht“ in den Chat!</span>' : l.nextMin != null ? `<span class="ld">⏱️ Nächster Ausbruch in ~${l.nextMin} Min.</span>` : ''
+      bar.className = 'livebar on' + (l.lockdown ? ' alarm' : '')
+      put(bar, `<span class="lv">LIVE${l.viewers ? ' · ' + fmt(l.viewers) + ' Zuschauer' : ''}</span>${cam}${ld}`)
+    } catch (_) {}
+  }
+
+  // ------------------------------------------------------------ Knast-Plan (22.11.): alle Zellen, Farbe = Block der Stufe
+  async function loadPlan () {
+    try {
+      if (me && meCellFor !== me) { meCellFor = me; try { const z = await get('/api/zelle?name=' + encodeURIComponent(me)); meCell = z.found ? z.p.cell : null } catch (_) {} }
+      const d = await get('/api/plan')
+      planNames = d.names || {}
+      const segs = Math.ceil(d.cells / 10); const S = 12; const G = 2; const MID = 12
+      const W = segs * (S + G) + 4; const H = 10 * (S + G) + MID + 4
+      const pos = no => { const i = no - 1; const seg = Math.floor(i / 10); const w = i % 10; const fl = Math.floor(w / 2); const side = w % 2; return { x: 2 + seg * (S + G), y: side === 0 ? 2 + (4 - fl) * (S + G) : 2 + 5 * (S + G) + MID + (4 - fl) * (S + G) } }
+      let s = ''
+      for (let no = 1; no <= d.cells; no++) {
+        const lv = parseInt(d.lv[no - 1], 36) || 0; const p = pos(no)
+        const blk = lv ? (lv <= 5 ? 'D' : lv <= 10 ? 'C' : lv <= 15 ? 'B' : 'A') : null
+        s += `<rect x="${p.x}" y="${p.y}" width="${S}" height="${S}" rx="2" fill="${blk ? BLOCKC[blk] : '#22222a'}" fill-opacity="${lv ? (0.5 + 0.5 * (((lv - 1) % 5) + 1) / 5).toFixed(2) : 1}" data-c="${no}"/>`
+      }
+      if (meCell && meCell <= d.cells) { const p = pos(meCell); s += `<rect x="${p.x - 2}" y="${p.y - 2}" width="${S + 4}" height="${S + 4}" rx="3" fill="none" stroke="#fff" stroke-width="2.4"><animate attributeName="stroke-opacity" values="1;.25;1" dur="1.3s" repeatCount="indefinite"/></rect>` }
+      if (d.cam && d.cam <= d.cells) { const p = pos(d.cam); s += `<circle cx="${p.x + S / 2}" cy="${p.y + S / 2}" r="4.5" fill="#ff3b3b" stroke="#fff" stroke-width="1.2"><animate attributeName="opacity" values="1;.25;1" dur=".9s" repeatCount="indefinite"/></circle>` }
+      s += `<text x="${W - 4}" y="${5 * (S + G) + MID / 2 + 5}" text-anchor="end" font-size="9" fill="#6c717b" font-family="sans-serif">◀ linke Seite oben · rechte Seite unten · Hallenanfang links ▶</text>`
+      const occ = (d.lv.match(/[^0]/g) || []).length
+      $('planInfo').textContent = `${fmt(occ)} von ${fmt(d.cells)} Zellen belegt`
+      put($('plan'), `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Plan aller Zellen">${s}</svg><div class="leg"><span><i style="background:${BLOCKC.D}"></i>Block D · St. 1–5</span><span><i style="background:${BLOCKC.C}"></i>Block C · 6–10</span><span><i style="background:${BLOCKC.B}"></i>Block B · 11–15</span><span><i style="background:${BLOCKC.A}"></i>Block A · 16–20</span><span><i style="background:#ff3b3b;border-radius:50%"></i>Kamera gerade</span>${meCell ? '<span><i style="background:none;border:2px solid #fff"></i>Deine Zelle</span>' : ''}</div>`)
+    } catch (_) {}
+  }
+  document.addEventListener('click', e => {
+    const r = e.target.closest && e.target.closest('#plan rect[data-c]'); if (!r) return
+    const no = Number(r.dataset.c); const n = planNames[no]
+    if (n) go(n); else toast('Zelle ' + no + ' ist noch frei')
+  })
+
+  // ------------------------------------------------------------ Fahndungsplakat (22.11.): Bild 1080 × 1920 zum Teilen
+  const loadImg = src => new Promise((ok, no) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = no; i.src = src })
+  const svgSrc = lvl => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(cellSvg(lvl, 'pl'))
+  function rr (g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath() }
+  function fitText (g, t, x, y, maxW, size, weight, fam) { let s = size; do { g.font = `${weight} ${s}px ${fam}`; s -= 4 } while (g.measureText(t).width > maxW && s > 20); g.fillText(t, x, y) }
+  function wrapText (g, t, x, y, maxW, lh) { const words = String(t).split(' '); let line = ''; for (const w of words) { const test = line ? line + ' ' + w : w; if (g.measureText(test).width > maxW && line) { g.fillText(line, x, y); line = w; y += lh } else line = test } if (line) g.fillText(line, x, y); return y }
+  const HEAD = 'Impact, "Arial Black", "Arial Narrow Bold", sans-serif'; const BODY = '"Segoe UI", Roboto, Arial, sans-serif'
+  let posterBlob = null; let posterName = ''
+  async function openPoster (p) {
+    if (!p) return
+    const cv = $('posterCv'); const g = cv.getContext('2d')
+    g.fillStyle = '#0b0b0d'; g.fillRect(0, 0, 1080, 1920)
+    for (let x = -60; x < 1140; x += 60) { g.fillStyle = '#ffd23d'; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 30, 0); g.lineTo(x + 70, 44); g.lineTo(x + 40, 44); g.fill(); g.beginPath(); g.moveTo(x, 1876); g.lineTo(x + 30, 1876); g.lineTo(x + 70, 1920); g.lineTo(x + 40, 1920); g.fill() }
+    const paper = g.createLinearGradient(0, 80, 0, 1840); paper.addColorStop(0, '#efe5cc'); paper.addColorStop(1, '#d9c8a2')
+    g.fillStyle = paper; rr(g, 56, 84, 968, 1752, 28); g.fill()
+    g.textAlign = 'center'; g.fillStyle = '#b3121b'; fitText(g, 'GESUCHT', 540, 262, 900, 190, '900', HEAD)
+    g.fillStyle = '#3a2a12'; g.font = `800 40px ${BODY}`; g.fillText('IM KNAST VON GITTERKÖNIG', 540, 326)
+    // Foto: echtes Bild aus der Kamera, sonst die gezeichnete Zelle
+    let img = null; try { img = await loadImg(p.foto ? API + p.foto.url : svgSrc(p.level)) } catch (_) { try { img = await loadImg(svgSrc(p.level)) } catch (_) {} }
+    const fx = 130; const fy = 370; const fw = 820; const fh = 729
+    g.fillStyle = '#1a1208'; g.fillRect(fx - 12, fy - 12, fw + 24, fh + 24)
+    if (img) { const r = Math.max(fw / img.width, fh / img.height); const w = img.width * r; const h = img.height * r; g.save(); g.beginPath(); g.rect(fx, fy, fw, fh); g.clip(); g.drawImage(img, fx + (fw - w) / 2, fy + (fh - h) / 2, w, h); g.restore() }
+    if (p.foto) { g.fillStyle = 'rgba(0,0,0,.65)'; rr(g, fx + 16, fy + 16, 300, 50, 10); g.fill(); g.fillStyle = '#fff'; g.font = `800 26px ${BODY}`; g.textAlign = 'left'; g.fillText('📷 ECHTES FOTO', fx + 34, fy + 50); g.textAlign = 'center' }
+    // Name, Akte
+    g.fillStyle = '#1a1208'; fitText(g, String(p.nick || p.name).toUpperCase(), 540, 1206, 900, 96, '900', HEAD)
+    g.font = `700 40px ${BODY}`; g.fillStyle = '#4a3a22'; g.fillText(p.name, 540, 1262)
+    g.font = `800 44px ${BODY}`; g.fillStyle = '#1a1208'
+    g.fillText(`ZELLE ${p.cell != null ? p.cell : '–'}  ·  BLOCK ${p.block}`, 540, 1346)
+    g.fillText(`STUFE ${p.level}  ·  ${String(p.levelName).toUpperCase()}`, 540, 1406)
+    if (p.rank) g.fillText(`PLATZ ${fmt(p.rank)} VON ${fmt(p.of)}`, 540, 1466)
+    // Tatvorwurf
+    g.strokeStyle = '#b3121b'; g.lineWidth = 5; g.setLineDash([18, 12]); rr(g, 110, 1510, 860, 190, 20); g.stroke(); g.setLineDash([])
+    g.fillStyle = '#b3121b'; g.font = `900 30px ${BODY}`; g.fillText('TATVORWURF', 540, 1556)
+    g.fillStyle = '#1a1208'; g.font = `800 42px ${BODY}`; wrapText(g, crimeOf(p.name), 540, 1612, 800, 50)
+    // Stempel
+    g.save(); g.translate(820, 1150); g.rotate(-0.22); g.strokeStyle = 'rgba(179,18,27,.85)'; g.lineWidth = 7; rr(g, -170, -54, 340, 108, 14); g.stroke()
+    g.fillStyle = 'rgba(179,18,27,.85)'; g.font = `900 30px ${BODY}`; g.fillText('HÄFTLING', 0, -8); g.font = `900 40px ${HEAD}`; g.fillText('#' + String(p.no).padStart(6, '0'), 0, 36); g.restore()
+    // Fuß
+    g.fillStyle = '#3a2a12'; g.font = `800 34px ${BODY}`; g.fillText('Finde deine Zelle:', 540, 1760)
+    g.fillStyle = '#b3121b'; g.font = `900 54px ${BODY}`; g.fillText('gitterkoenig.github.io', 540, 1816)
+    g.fillStyle = '#fff'; g.font = `800 30px ${BODY}`; g.fillText('LIVE auf TikTok: @gitterkoenig', 540, 1868)
+    posterName = String(p.name).replace(/^@/, '')
+    posterBlob = null
+    try { posterBlob = await new Promise(ok => cv.toBlob(ok, 'image/png')) } catch (_) { posterBlob = null }
+    $('poster').classList.add('on')
+  }
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#plakat')) openPoster(lastCard) })
+  $('pClose').addEventListener('click', () => $('poster').classList.remove('on'))
+  $('poster').addEventListener('click', e => { if (e.target.id === 'poster') $('poster').classList.remove('on') })
+  const saveBlob = () => { if (!posterBlob) { toast('Bild geht in diesem Browser nicht – mach einen Screenshot'); return } const a = document.createElement('a'); a.href = URL.createObjectURL(posterBlob); a.download = 'gitterkoenig-' + posterName + '.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove() }, 2000) }
+  $('pSave').addEventListener('click', saveBlob)
+  $('pShare').addEventListener('click', async () => {
+    try {
+      if (posterBlob) { const file = new File([posterBlob], 'gitterkoenig-' + posterName + '.png', { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'GESUCHT bei GITTERKÖNIG', text: 'Meine Zelle bei GITTERKÖNIG – gitterkoenig.github.io' }); return } }
+    } catch (_) { return }
+    saveBlob()
+  })
+
   // ------------------------------------------------------------ Start + Auffrischen
   recent()
+  loadLive(); setInterval(() => { if (!document.hidden) loadLive() }, 3000)
   const first = location.hash.slice(1)
   if (new URLSearchParams(location.search).get('name') && !first) location.hash = 'zelle'
   show(first || (new URLSearchParams(location.search).get('name') ? 'zelle' : 'uebersicht'))
