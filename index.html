@@ -497,7 +497,7 @@
         : '<div class="note">Der Thron ist gerade leer. Wer Platz 1 holt, wird Gitterkönig.</div>')
       put($('podiumHome'), podium(d.top3 || []))
       put($('feed'), (d.news || []).length ? d.news.map(n => `<div class="ev"><div class="ic">${n.kind === 'cell' ? '🔑' : n.flucht ? '🏃' : '⬆️'}</div><div class="tx">${n.kind === 'cell' ? `<b>${esc(n.nick || n.name)}</b> bezieht Zelle ${n.cell}` : `<b>${esc(n.nick || n.name)}</b> ist jetzt Stufe ${n.level} · ${esc(n.levelName)}${n.flucht ? ' (Fluchtbeute)' : ''}`}</div><time>${ago(n.t)}</time></div>`).join('') : '<div class="note">Noch ist es ruhig im Block.</div>')
-      put($('gal'), (d.fotos || []).length ? d.fotos.map(f => `<div class="ph" data-name="${esc(f.name.replace(/^@/, ''))}"><img src="${esc(API + f.url)}" alt="Zelle ${f.cell}" loading="lazy"><div class="cap">${esc(f.nick || f.name)} · Zelle ${f.cell}<small>Stufe ${f.level} · ${esc(f.levelName)} · ${clock(f.t)} Uhr</small></div></div>`).join('')
+      put($('gal'), (d.fotos || []).length ? d.fotos.map(f => `<div class="ph" data-name="${esc(f.name.replace(/^@/, ''))}"><img src="${esc(API + f.url)}" alt="Zelle ${f.cell}" loading="lazy" onerror="this.closest('.ph').remove()"><div class="cap">${esc(f.nick || f.name)} · Zelle ${f.cell}<small>Stufe ${f.level} · ${esc(f.levelName)} · ${clock(f.t)} Uhr</small></div></div>`).join('')
         : '<div class="note">Sobald die Stream-Kamera in eine Zelle schaut, erscheint hier ein echtes Foto.</div>')
       if (!loadInfo.planAt || Date.now() - loadInfo.planAt > 11000) { loadInfo.planAt = Date.now(); loadPlan() }
       $('updated').textContent = 'Stand: ' + new Date(d.at || Date.now()).toLocaleTimeString('de-DE')
@@ -562,7 +562,7 @@
       </div>
       <div class="prog">${prog}</div>
       <div class="crime"><small>TATVORWURF</small>${esc(crimeOf(p.name))}</div>
-      ${p.foto ? `<div class="realfoto"><img src="${esc(API + p.foto.url)}" alt="Echtes Foto deiner Zelle"><span class="badge${p.onCam ? ' live' : ''}">${p.onCam ? '● GERADE LIVE IM STREAM' : '📷 ECHTES FOTO · ' + clock(p.foto.t) + ' UHR'}</span></div>` : ''}
+      ${p.foto ? `<div class="realfoto"><img src="${esc(API + p.foto.url)}" alt="Echtes Foto deiner Zelle" onerror="this.closest('.realfoto').remove()"><span class="badge${p.onCam ? ' live' : ''}">${p.onCam ? '● GERADE LIVE IM STREAM' : '📷 ECHTES FOTO · ' + clock(p.foto.t) + ' UHR'}</span></div>` : ''}
       <div class="cellpic">${cellSvg(p.level, 'me')}<div class="cap"><span>${p.foto ? 'Deine Stufe als Zeichnung' : 'Deine Zelle'}</span><span>${esc(p.cellTitle)}</span></div></div>
       ${!p.foto && p.cell != null ? `<div class="note" style="margin-top:8px">${p.onCam ? '🎥 Die Kamera ist gerade bei dir – gleich gibt es hier ein echtes Foto.' : '📷 Noch kein echtes Foto – sobald die Stream-Kamera in deine Zelle schaut, erscheint es hier.'}</div>` : ''}
       <div class="facts">
