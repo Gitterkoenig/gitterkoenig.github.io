@@ -372,7 +372,7 @@
   const $ = id => document.getElementById(id)
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
   const fmt = n => Number(n || 0).toLocaleString('de-DE')
-  const store = { get (k) { try { return localStorage.getItem(k) } catch (_) { return null } }, set (k, v) { try { localStorage.setItem(k, v) } catch (_) {} } }
+  const store = { get (k) { try { return localStorage.getItem(k) } catch (_) { return null } }, set (k, v) { try { localStorage.setItem(k, v) } catch (_) {} }, del (k) { try { localStorage.removeItem(k) } catch (_) {} } }
   const ago = t => { if (!t) return ''; const s = Math.max(0, (Date.now() - t) / 1000); if (s < 45) return 'gerade eben'; if (s < 3600) return 'vor ' + Math.round(s / 60) + ' Min.'; if (s < 86400) return 'vor ' + Math.round(s / 3600) + ' Std.'; const d = Math.round(s / 86400); return d === 1 ? 'gestern' : 'vor ' + d + ' Tagen' }
   const day = t => t ? new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'
   const initials = n => esc(String(n || '?').replace(/^@/, '').slice(0, 1).toUpperCase() || '?')
@@ -470,7 +470,18 @@
   function recent () { let r = []; try { r = JSON.parse(store.get('gk-recent') || '[]') } catch (_) {} $('recent').innerHTML = r.map(n => `<button class="chip" data-name="${esc(n)}">@${esc(n)}</button>`).join('') }
   document.addEventListener('click', e => { const c = e.target.closest('[data-name]'); if (c) { e.preventDefault(); go(c.dataset.name) } })
   document.querySelectorAll('form[data-go]').forEach(f => f.addEventListener('submit', e => { e.preventDefault(); const q = f.q.value.trim().replace(/^@/, ''); if (q) go(q) }))
-  function go (name) { me = name; $('qZelle').value = name; if (location.hash !== '#zelle') location.hash = 'zelle'; else loadZelle() }
+  // (22.11. 22:25, sein Wort: „da steht Jakob und ich kann da nichts ändern … dass das auch wirklich raus bleibt“:
+  //  das Feld wird nur noch beim Laden der Seite und bei einer neuen Suche gefüllt, nie mehr beim Auffrischen.
+  //  Wer es leert, vergisst den gemerkten Namen – auch nach dem Neuladen bleibt es leer.)
+  function urlName (n) { try { const u = new URL(location.href); if (!u.searchParams.has('name')) return; if (n) u.searchParams.set('name', n); else u.searchParams.delete('name'); history.replaceState(null, '', u.pathname + u.search + u.hash) } catch (_) {} }
+  if (me) $('qZelle').value = me
+  $('qZelle').addEventListener('input', e => {
+    if (e.target.value.trim()) return
+    me = ''; store.del('gk-name'); urlName('')
+    const box = $('zelleBox'); delete box.dataset.for; lastCard = null; meCell = null; meCellFor = ''
+    box.innerHTML = '<div class="note">Gib oben deinen TikTok-Namen ein – ohne @, so wie er in deinem Profil steht.</div>'
+  })
+  function go (name) { me = name; $('qZelle').value = name; urlName(name); if (location.hash !== '#zelle') location.hash = 'zelle'; else loadZelle() }
 
   // ------------------------------------------------------------ Übersicht
   async function loadInfo () {
@@ -503,10 +514,11 @@
   async function loadZelle () {
     const box = $('zelleBox')
     if (!me) { box.innerHTML = '<div class="note">Gib oben deinen TikTok-Namen ein – ohne @, so wie er in deinem Profil steht.</div>'; return }
-    $('qZelle').value = me
     if (!box.dataset.for || box.dataset.for !== me) box.innerHTML = '<div class="skel" style="height:420px"></div>'
     try {
-      const d = await get('/api/zelle?name=' + encodeURIComponent(me))
+      const asked = me
+      const d = await get('/api/zelle?name=' + encodeURIComponent(asked))
+      if (asked !== me) return   // inzwischen geleert oder anderer Name gesucht – alte Antwort verwerfen
       const firstTime = box.dataset.for !== me
       box.dataset.for = me
       if (d.found) {
