@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GITTERKÖNIG – Meine Zelle</title>
+<meta name="description" content="Gitterkönig: Such deinen TikTok-Namen und sieh deine Zelle, deine Stufe und wie weit es bis zum nächsten Aufstieg ist.">
+<meta name="theme-color" content="#0b0b0d">
+<!-- GITTERKÖNIG – „Meine Zelle“ (21.11.2026). Wird von website\gitterkoenig-seite.mjs ausgeliefert; die Zahlen kommen
+     von /api/… (nur lesend aus der Spiel-Datenbank). Keine fremden Schriften, keine Tracker. -->
+<style>
+  :root {
+    --bg: #0b0b0d; --bg2: #101014; --panel: #15151a; --panel2: #1c1c23; --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
+    --text: #f3f3f5; --muted: #9ea3ad; --dim: #6c717b;
+    --orange: #ff7a1a; --orange2: #ffb15c; --red: #ff3b3b; --yellow: #ffd23d; --teal: #3fe0c5; --blue: #5aa9ff; --gold: #ffd84a;
+    --head: Impact, "Haettenschweiler", "Arial Narrow Bold", "Franklin Gothic Bold", "Bahnschrift", sans-serif;
+    --body: "Bahnschrift", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --r: 16px; --tabs: 68px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
+  body { margin: 0; min-height: 100vh; color: var(--text); font: 15px/1.45 var(--body); background:
+      radial-gradient(1200px 600px at 50% -200px, rgba(255,122,26,.16), transparent 70%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 2px, transparent 2px 46px), var(--bg);
+    padding-bottom: calc(var(--tabs) + env(safe-area-inset-bottom) + 18px); }
+  a { color: var(--orange2); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 14px; }
+  .tape { height: 10px; background: repeating-linear-gradient(-45deg, #111 0 12px, var(--yellow) 12px 24px); opacity: .9; }
+
+  /* ---------- Kopf ---------- */
+  header { position: sticky; top: 0; z-index: 20; background: rgba(11,11,13,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .bar { display: flex; align-items: center; gap: 10px; height: 58px; }
+  .logo { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); }
+  .logo svg { width: 30px; height: 30px; flex: none; }
+  .logo b { font: 400 27px/1 var(--head); letter-spacing: 1.5px; }
+  .logo b i { font-style: normal; color: var(--orange); }
+  .live { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; font: 700 12px var(--body); letter-spacing: 1.5px; text-transform: uppercase; text-decoration: none; color: #fff; background: #26262e; border: 1px solid var(--line2); }
+  .live::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--dim); }
+  .live.on { background: var(--red); border-color: transparent; box-shadow: 0 0 18px rgba(255,59,59,.55); }
+  .live.on::before { background: #fff; animation: blink 1.1s infinite; }
+  @keyframes blink { 50% { opacity: .25 } }
+
+  /* ---------- Bereiche ---------- */
+  .view { display: none; padding: 16px 0 8px; animation: fade .35s ease both; }
+  .view.on { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+  h2 { font: 400 26px/1.05 var(--head); letter-spacing: 1.2px; margin: 26px 0 12px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+  h2 small { font: 600 12px var(--body); letter-spacing: 1px; color: var(--muted); text-transform: none; margin-left: auto; }
+  h2::before { content: ''; width: 6px; height: 22px; background: var(--orange); border-radius: 2px; }
+  .card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  .muted { color: var(--muted); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Suche ---------- */
+  .hero { position: relative; overflow: hidden; padding: 22px 18px 20px; border-radius: 20px; border: 1px solid rgba(255,122,26,.35);
+    background: linear-gradient(160deg, rgba(255,122,26,.20), rgba(255,122,26,.03) 55%), var(--panel); }
+  .hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(90deg, transparent 0 34px, rgba(0,0,0,.28) 34px 40px); mask: linear-gradient(90deg, transparent 55%, #000); -webkit-mask: linear-gradient(90deg, transparent 55%, #000); }
+  .hero h1 { position: relative; z-index: 1; margin: 0; font: 400 38px/0.98 var(--head); letter-spacing: 1px; text-transform: uppercase; max-width: 15ch; }
+  .hero h1 em { font-style: normal; color: var(--orange); }
+  .hero p { position: relative; z-index: 1; margin: 10px 0 16px; color: #d8d8de; max-width: 34ch; }
+  .search { position: relative; z-index: 1; display: flex; gap: 8px; }
+  .search input { flex: 1; min-width: 0; height: 50px; padding: 0 14px 0 40px; border-radius: 13px; border: 1px solid var(--line2); background: #0e0e12 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ea3ad' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E") 13px 50%/19px no-repeat; color: var(--text); font: 600 16px var(--body); outline: none; }
+  .search input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,26,.25); }
+  .btn { height: 50px; padding: 0 18px; border: 0; border-radius: 13px; background: var(--orange); color: #140a02; font: 800 15px var(--body); letter-spacing: .5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: #23232b; color: var(--text); border: 1px solid var(--line2); }
+  .btn.small { height: 40px; padding: 0 14px; font-size: 14px; border-radius: 11px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; background: #22222a; border: 1px solid var(--line2); color: var(--text); font: 600 14px var(--body); cursor: pointer; }
+  .chip small { color: var(--muted); font-weight: 600; }
+
+  /* ---------- Zahlen ---------- */
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+  @media (min-width: 560px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat { padding: 13px 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+  .stat b { display: block; font: 400 28px/1 var(--head); letter-spacing: .5px; }
+  .stat span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .meter { height: 8px; border-radius: 99px; background: #2a2a31; overflow: hidden; margin-top: 8px; }
+  .meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--orange), var(--red)); transition: width .8s ease; }
+
+  /* ---------- König ---------- */
+  .king { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,216,74,.45);
+    background: radial-gradient(400px 160px at 15% 0%, rgba(255,216,74,.28), transparent 70%), linear-gradient(180deg, #221d0e, #14130e); }
+  .king .crown { position: absolute; right: -8px; top: -14px; width: 120px; opacity: .13; }
+  .king .who { min-width: 0; }
+  .king .tag { font: 800 11px var(--body); letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+  .king .nm { font: 400 26px/1.05 var(--head); letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .king .sub { color: #e8dcb0; font-size: 13px; }
+  .ava { flex: none; width: 58px; height: 58px; border-radius: 50%; object-fit: cover; background: #2a2a31; border: 2px solid var(--line2); display: grid; place-items: center; font: 400 22px var(--head); color: #fff; overflow: hidden; }
+  .ava.gold { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255,216,74,.25); }
+
+  /* ---------- Ticker „Gerade passiert“ ---------- */
+  .feed { display: flex; flex-direction: column; gap: 8px; }
+  .ev { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 13px; background: var(--panel); border: 1px solid var(--line); }
+  .ev .ic { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 17px; background: #24242c; }
+  .ev .tx { flex: 1; min-width: 0; font-size: 14px; }
+  .ev .tx b { font-weight: 800; }
+  .ev time { flex: none; color: var(--dim); font-size: 12px; }
+
+  /* ---------- Häftlingsakte ---------- */
+  .akte { padding: 0; overflow: hidden; }
+  .akte .top { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #0f0f13; border-bottom: 1px dashed var(--line2); font: 800 11px var(--body); letter-spacing: 2.5px; color: var(--muted); text-transform: uppercase; }
+  .akte .top .stamp { color: var(--red); border: 2px solid var(--red); border-radius: 6px; padding: 2px 8px; transform: rotate(-4deg); letter-spacing: 2px; }
+  .akte .main { display: grid; grid-template-columns: 128px 1fr; gap: 16px; padding: 16px; }
+  @media (max-width: 380px) { .akte .main { grid-template-columns: 104px 1fr; gap: 12px; } }
+  .mug { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 3 / 4; background:
+      repeating-linear-gradient(180deg, transparent 0 13px, rgba(255,255,255,.16) 13px 14px), linear-gradient(180deg, #31343b, #1d1f24); border: 1px solid var(--line2); }
+  .mug img, .mug .ph { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); width: 78%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.85); background: #3a3d45; display: grid; place-items: center; font: 400 38px var(--head); color: #fff; }
+  .mug .plate { position: absolute; left: 0; right: 0; bottom: 0; height: 20px; background: #0b0b0d; color: var(--orange2); font: 800 11px/20px var(--body); letter-spacing: 1.5px; text-align: center; }
+  .who2 { min-width: 0; }
+  .who2 .nm { font: 400 30px/1 var(--head); letter-spacing: .4px; word-break: break-word; }
+  .who2 .nick { color: var(--muted); font-size: 14px; margin-top: 3px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .bd { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 8px; font: 800 12px var(--body); letter-spacing: .6px; background: #24242c; border: 1px solid var(--line2); }
+  .bd.blk { color: #111; border: 0; }
+  .lvl { display: flex; align-items: baseline; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .lvl .n { font: 400 46px/0.9 var(--head); color: var(--orange); }
+  .lvl .t { font: 400 22px/1 var(--head); letter-spacing: .5px; }
+  .lvl .c { width: 100%; color: var(--muted); font-size: 13px; }
+  .prog { padding: 0 16px 16px; }
+  .prog .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; color: var(--muted); }
+  .prog .row b { color: var(--text); font-size: 15px; }
+  .pbar { position: relative; height: 16px; border-radius: 99px; background: #26262e; overflow: hidden; margin: 8px 0 8px; border: 1px solid var(--line); }
+  .pbar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--orange), var(--yellow)); box-shadow: 0 0 16px rgba(255,140,40,.55); transition: width 1s cubic-bezier(.2,.8,.2,1); }
+  .pbar i::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, rgba(255,255,255,.18) 0 8px, transparent 8px 16px); animation: move 1.2s linear infinite; }
+  @keyframes move { to { background-position: 22.6px 0 } }
+  .missing { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(255,122,26,.10); border: 1px solid rgba(255,122,26,.35); font-size: 15px; }
+  .missing b { color: var(--orange2); font-size: 20px; font-family: var(--head); font-weight: 400; letter-spacing: .5px; }
+  .cellpic { margin: 0 16px 16px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line2); background: #0d0d10; }
+  .cellpic svg { display: block; width: 100%; height: auto; }
+  .cellpic .cap { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; font: 700 12px var(--body); letter-spacing: 1px; color: var(--muted); text-transform: uppercase; background: #121216; }
+  .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
+  @media (min-width: 560px) { .facts { grid-template-columns: repeat(4, 1fr); } }
+  .facts div { background: var(--panel); padding: 12px 14px; }
+  .facts b { display: block; font: 400 22px/1 var(--head); letter-spacing: .4px; }
+  .facts span { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .actions { display: flex; gap: 8px; padding: 14px 16px 16px; flex-wrap: wrap; }
+  .note { margin-top: 12px; padding: 14px; border-radius: 14px; background: var(--panel); border: 1px dashed var(--line2); color: #d6d6dc; }
+
+  /* ---------- Rangliste ---------- */
+  .podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; margin-top: 6px; }
+  .pod { text-align: center; padding: 12px 6px 10px; border-radius: 14px 14px 8px 8px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; min-width: 0; }
+  .pod .ava { margin: 0 auto 8px; width: 52px; height: 52px; }
+  .pod.p1 { padding-top: 16px; border-color: rgba(255,216,74,.5); background: linear-gradient(180deg, #2a2311, var(--panel)); }
+  .pod.p1 .ava { width: 66px; height: 66px; border-color: var(--gold); }
+  .pod .pl { font: 400 30px/1 var(--head); }
+  .pod.p1 .pl { color: var(--gold); } .pod.p2 .pl { color: #d9dde3; } .pod.p3 .pl { color: #e3a46b; }
+  .pod .nm { font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pod .pt { color: var(--muted); font-size: 12px; }
+  .list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .row1 { display: grid; grid-template-columns: 40px 38px 1fr auto; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
+  .row1.me { border-color: var(--orange); background: linear-gradient(90deg, rgba(255,122,26,.16), var(--panel)); }
+  .row1 .ps { font: 400 21px var(--head); color: var(--muted); text-align: center; }
+  .row1 .ava { width: 38px; height: 38px; font-size: 16px; border-width: 1px; }
+  .row1 .nm { min-width: 0; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row1 .nm small { display: block; font-weight: 600; color: var(--muted); font-size: 12px; }
+  .row1 .pt { text-align: right; font: 400 18px var(--head); letter-spacing: .3px; }
+  .row1 .pt small { display: block; font: 700 10px var(--body); color: var(--muted); letter-spacing: 1px; }
+  .seg { display: flex; gap: 6px; background: #17171c; border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-bottom: 12px; }
+  .seg button { flex: 1; height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: 800 13px var(--body); letter-spacing: .5px; cursor: pointer; }
+  .seg button.on { background: #2a2a33; color: var(--text); }
+  .fame { display: flex; flex-direction: column; gap: 6px; }
+  .fame div { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+  .fame div:first-child { border-color: rgba(255,216,74,.45); }
+  .fame .c { color: var(--gold); font-size: 18px; } .fame .n { flex: 1; font-weight: 800; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .fame time { color: var(--muted); font-size: 12px; }
+
+  /* ---------- Stufen ---------- */
+  .block { margin-top: 18px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--panel); }
+  .block .bh { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font: 400 21px var(--head); letter-spacing: .8px; text-transform: uppercase; }
+  .block .bh .tg { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #111; font: 400 22px var(--head); }
+  .block .bh small { margin-left: auto; font: 700 12px var(--body); color: var(--muted); letter-spacing: .5px; text-transform: none; }
+  .lv { display: grid; grid-template-columns: 112px 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line); }
+  .lv svg { display: block; width: 112px; height: auto; border-radius: 9px; border: 1px solid var(--line2); }
+  .lv .nm { font: 400 20px/1.05 var(--head); letter-spacing: .4px; }
+  .lv .nm small { display: block; font: 600 13px var(--body); color: var(--muted); letter-spacing: 0; margin-top: 3px; }
+  .lv .need { text-align: right; font: 400 18px var(--head); white-space: nowrap; }
+  .lv .need small { display: block; font: 700 10px var(--body); color: var(--muted); letter-spacing: 1px; }
+  .lv.mine { background: rgba(255,122,26,.10); box-shadow: inset 4px 0 0 var(--orange); }
+  .lv.next { box-shadow: inset 4px 0 0 rgba(255,255,255,.25); }
+  .here { display: inline-block; margin-top: 4px; padding: 2px 7px; border-radius: 6px; background: var(--orange); color: #140a02; font: 800 10px var(--body); letter-spacing: 1px; }
+  @media (max-width: 400px) { .lv { grid-template-columns: 84px 1fr auto; gap: 10px; } .lv svg { width: 84px; } }
+
+  /* ---------- Regeln ---------- */
+  .steps { counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
+  .step { position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 12px; padding: 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+  .step::before { counter-increment: s; content: counter(s); width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: var(--orange); color: #140a02; font: 400 26px var(--head); }
+  .step b { display: block; font: 400 21px/1.1 var(--head); letter-spacing: .5px; margin-bottom: 3px; }
+  .step p { margin: 0; color: #d4d4da; }
+  .kbd { display: inline-block; padding: 1px 8px; border-radius: 6px; background: #2a2a33; border: 1px solid var(--line2); font: 800 13px var(--body); color: var(--orange2); }
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px; margin-top: 8px; }
+  summary { cursor: pointer; font-weight: 800; }
+  details p { margin: 8px 0 0; color: #d4d4da; }
+  footer { margin: 30px 0 10px; text-align: center; color: var(--dim); font-size: 12px; }
+
+  /* ---------- Leiste unten ---------- */
+  nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding-bottom: env(safe-area-inset-bottom); background: rgba(12,12,15,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line2); }
+  nav.tabs .in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); height: var(--tabs); }
+  nav.tabs button { border: 0; background: none; color: var(--dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 800 10.5px var(--body); letter-spacing: .6px; text-transform: uppercase; cursor: pointer; }
+  nav.tabs button svg { width: 24px; height: 24px; }
+  nav.tabs button.on { color: var(--orange); }
+  .toast { position: fixed; left: 50%; bottom: calc(var(--tabs) + 18px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); opacity: 0; transition: .25s; background: #f3f3f5; color: #111; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; z-index: 40; pointer-events: none; }
+  .toast.on { opacity: 1; transform: translateX(-50%); }
+  .skel { height: 120px; border-radius: 16px; background: linear-gradient(90deg, #17171c, #202028, #17171c); background-size: 200% 100%; animation: sk 1.2s infinite; }
+  @keyframes sk { to { background-position: -200% 0 } }
+</style>
+</head>
+<body>
+<div class="tape"></div>
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#uebersicht" aria-label="Gitterkönig">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 11l5 5 6-9 6 9 5-5-2 12H7z" fill="#ffd84a"/><rect x="7" y="24" width="18" height="3.4" rx="1" fill="#ffd84a"/><g stroke="#0b0b0d" stroke-width="1.6"><path d="M11 13v10M16 11v12M21 13v10"/></g></svg>
+      <b>GITTER<i>KÖNIG</i></b>
+    </a>
+    <a id="live" class="live" href="https://www.tiktok.com/@gitterkoenig/live" target="_blank" rel="noopener">Offline</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Übersicht -->
+  <section id="v-uebersicht" class="view on">
+    <div class="hero">
+      <h1>Wer wird <em>König</em> hinter Gittern?</h1>
+      <p>Such deinen TikTok-Namen und sieh deine Zelle, deine Stufe und wie weit es bis zum nächsten Aufstieg ist.</p>
+      <form class="search" data-go>
+        <input name="q" placeholder="Dein TikTok-Name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="TikTok-Name">
+        <button class="btn" type="submit">Zelle zeigen</button>
+      </form>
+      <div class="chips" id="recent"></div>
+    </div>
+
+    <h2>Der Gitterkönig <small id="seasonName"></small></h2>
+    <div id="kingBox"><div class="skel"></div></div>
+
+    <div class="stats">
+      <div class="stat"><b class="num" id="sPris">–</b><span>Häftlinge</span></div>
+      <div class="stat"><b class="num" id="sCells">–</b><span>Zellen belegt</span></div>
+      <div class="stat"><b class="num" id="sLikes">–</b><span>Höchste Stufe</span></div>
+      <div class="stat"><b class="num" id="sMeter">–</b><span>Ausbruch-Meter</span><div class="meter"><i id="sMeterBar"></i></div></div>
+    </div>
+
+    <h2>Meistgesucht <small><a href="#rang">Ganze Liste</a></small></h2>
+    <div class="podium" id="podiumHome"></div>
+
+    <h2>Gerade passiert</h2>
+    <div class="feed" id="feed"><div class="skel" style="height:56px"></div></div>
+  </section>
+
+  <!-- Meine Zelle -->
+  <section id="v-zelle" class="view">
+    <form class="search" data-go style="margin-top:4px">
+      <input name="q" id="qZelle" placeholder="Dein TikTok-Name" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="TikTok-Name">
+      <button class="btn" type="submit">Suchen</button>
+    </form>
+    <div id="zelleBox" style="margin-top:14px"></div>
+  </section>
+
+  <!-- Rangliste -->
+  <section id="v-rang" class="view">
+    <h2>Meistgesucht <small id="rangCount"></small></h2>
+    <div class="podium" id="podium"></div>
+    <div id="meBox"></div>
+    <div class="list" id="rangList"></div>
+    <h2>Ruhmeshalle</h2>
+    <p class="muted" style="margin:-4px 0 10px">Jeder neue Gitterkönig wird hier verewigt – genau wie auf der Tafel unter dem Thron.</p>
+    <div class="fame" id="fame"></div>
+  </section>
+
+  <!-- Stufen -->
+  <section id="v-stufen" class="view">
+    <h2>Alle 20 Stufen</h2>
+    <p class="muted" style="margin:-4px 0 0">Wer im LIVE mitmacht, steigt auf. Mit jeder Stufe wird deine Zelle live im Spiel umgebaut – und alle fünf Stufen ziehst du einen Block höher.</p>
+    <div id="stufenBox"></div>
+  </section>
+
+  <!-- So geht's -->
+  <section id="v-regeln" class="view">
+    <h2>So geht's</h2>
+    <div class="steps">
+      <div class="step"><div><b>Komm in den LIVE</b><p>Gitterkönig läuft im TikTok-LIVE von <a href="https://www.tiktok.com/@gitterkoenig" target="_blank" rel="noopener">@gitterkoenig</a>. Momo, der Knast-Boss, führt dich durch den Block.</p></div></div>
+      <div class="step"><div><b>Mitmachen = eigene Zelle</b><p>Wer im LIVE mitmacht, zieht ein – mit seinem Namen über der Tür. Schreiben musst du dafür nichts.</p></div></div>
+      <div class="step"><div><b>Aufsteigen</b><p>Wer mitmacht, steigt höher. Mit jeder Stufe wird deine Zelle live ausgebaut: von der Dreckszelle bis zur Kronen-Suite.</p></div></div>
+      <div class="step"><div><b>Platz 1 wird Gitterkönig</b><p>Wer ganz oben steht, sitzt im Glaskäfig auf dem Thron über dem Schacht. Wer den König überholt, stürzt ihn ins Loch.</p></div></div>
+      <div class="step"><div><b>Massenausbruch</b><p>Ist das Ausbruch-Meter voll, gehen alle Türen auf. Schreib schnell <span class="kbd">Flucht</span> in den Chat – die ersten fünf kommen raus und kriegen Fluchtbeute.</p></div></div>
+      <div class="step"><div><b>Deine Zelle im Stream</b><p>Schreib <span class="kbd">info</span> in den Chat – dann fährt die Kamera zu deiner Zelle oder du siehst, wie viel noch fehlt. Mit <span class="kbd">!rang</span> siehst du deinen Platz.</p></div></div>
+    </div>
+    <h2>Fragen</h2>
+    <details><summary>Ich finde meinen Namen nicht.</summary><p>Gib deinen TikTok-Namen ohne @ ein, so wie er in deinem Profil steht. Du erscheinst, sobald du im LIVE dabei warst. Neue Saisons fangen bei null an.</p></details>
+    <details><summary>Wie schnell wird die Seite aktualisiert?</summary><p>Fast in Echtzeit: Die Zahlen kommen direkt aus dem Spiel und sind höchstens ein paar Sekunden alt.</p></details>
+    <details><summary>Kann ich meine Zelle verlieren?</summary><p>Wer sehr lange nicht mehr da war, kann seine Zelle an einen Neuzugang verlieren, wenn alle Zellen voll sind. Deine Stufe bleibt.</p></details>
+    <details><summary>Wer ist Momo?</summary><p>Momo ist Häftling Nummer 069 und der Boss im Block – eine KI-Figur mit eigener Stimme, die im LIVE alles kommentiert und den Chat liest.</p></details>
+  </section>
+  <footer>GITTERKÖNIG · ein Spiel im TikTok-LIVE von <a href="https://www.tiktok.com/@gitterkoenig" target="_blank" rel="noopener">@gitterkoenig</a><br><span id="updated"></span></footer>
+</main>
+
+<nav class="tabs" aria-label="Bereiche"><div class="in">
+  <button data-tab="uebersicht" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Übersicht</button>
+  <button data-tab="zelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 3v18M12 3v18M16 3v18"/></svg>Meine Zelle</button>
+  <button data-tab="rang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Rangliste</button>
+  <button data-tab="stufen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4v-5h4v-5h4V5h4"/></svg>Stufen</button>
+  <button data-tab="regeln"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>So geht's</button>
+</div></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  'use strict'
+  const $ = id => document.getElementById(id)
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+  const fmt = n => Number(n || 0).toLocaleString('de-DE')
+  const store = { get (k) { try { return localStorage.getItem(k) } catch (_) { return null } }, set (k, v) { try { localStorage.setItem(k, v) } catch (_) {} } }
+  const ago = t => { if (!t) return ''; const s = Math.max(0, (Date.now() - t) / 1000); if (s < 45) return 'gerade eben'; if (s < 3600) return 'vor ' + Math.round(s / 60) + ' Min.'; if (s < 86400) return 'vor ' + Math.round(s / 3600) + ' Std.'; const d = Math.round(s / 86400); return d === 1 ? 'gestern' : 'vor ' + d + ' Tagen' }
+  const day = t => t ? new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'
+  const initials = n => esc(String(n || '?').replace(/^@/, '').slice(0, 1).toUpperCase() || '?')
+  const ava = (p, cls) => p && p.avatar ? `<img class="ava ${cls || ''}" src="${esc(p.avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;ava ${cls || ''}&quot;>${initials(p.name)}</div>'">` : `<div class="ava ${cls || ''}">${initials(p && p.name)}</div>`
+  const toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200) }
+  // nur neu zeichnen, wenn sich wirklich etwas geändert hat (sonst flackern Bilder und Balken alle paar Sekunden)
+  const put = (el, html) => { if (el && el._h !== html) { el._h = html; el.innerHTML = html; return true } return false }
+
+  // Woher die Zahlen kommen: dieselbe Adresse (Tunnel) – oder, auf GitHub Pages, die Adresse aus adresse.json
+  let API = ''
+  const ready = (async () => { if (/github\.io$/.test(location.hostname)) { try { const r = await fetch('adresse.json', { cache: 'no-store' }); API = (await r.json()).api || '' } catch (_) {} } })()
+  const get = async (p) => { await ready; const r = await fetch(API + p, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json() }
+
+  // ------------------------------------------------------------ Zelle als Bild (je Stufe gezeichnet)
+  const BLOCKC = { D: '#b8bec6', C: '#ff9a3c', B: '#ff4b4b', A: '#ffd84a' }
+  function cellSvg (lvl, uid) {
+    const L = Math.max(1, Math.min(20, lvl | 0)); const id = 'c' + L + (uid || '')
+    const blk = L <= 5 ? 'D' : L <= 10 ? 'C' : L <= 15 ? 'B' : 'A'
+    const wall = { D: ['#3a3d44', '#2a2c31'], C: ['#4a3a2e', '#2f261f'], B: ['#47292c', '#2c1b1d'], A: ['#4a4128', '#2c2716'] }[blk]
+    let w0 = wall[0]; let w1 = wall[1]; let floor = '#24252a'; let barC = '#8b9099'; let glow = null
+    if (L === 1) { w0 = '#3b3a34'; w1 = '#26251f'; floor = '#2b2a24'; barC = '#7a5a3a' }
+    if (L === 2) barC = '#8a5a34'
+    if (L === 14 || L === 20) { floor = '#e9e4da'; w0 = '#5c513a'; w1 = '#3a3322' }
+    if (L === 15) { w0 = '#d8d6d0'; w1 = '#b9b6ad'; floor = '#cfccc4' }
+    if (L === 17) { w0 = '#2c4a5c'; w1 = '#1b3140'; floor = '#9fd3e6'; glow = '#5fe6ff' }
+    if (L === 18) { w0 = '#3a2018'; w1 = '#24120d'; floor = '#2a1712'; glow = '#ff6a1a' }
+    if (L === 19) { w0 = '#2a2146'; w1 = '#17122b'; floor = '#1e1838'; glow = '#b07bff' }
+    const s = []
+    s.push(`<defs><linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${w0}"/><stop offset="1" stop-color="${w1}"/></linearGradient>` +
+      `<linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${floor}"/><stop offset="1" stop-color="#0c0c0e"/></linearGradient>` +
+      `<radialGradient id="${id}l" cx=".5" cy=".18" r=".7"><stop offset="0" stop-color="#fff3d0" stop-opacity=".42"/><stop offset="1" stop-color="#fff3d0" stop-opacity="0"/></radialGradient></defs>`)
+    // Raum: Rückwand, Seitenwände, Boden, Decke
+    s.push(`<rect width="320" height="200" fill="#08080a"/><polygon points="60,30 260,30 260,140 60,140" fill="url(#${id}w)"/>`)
+    s.push(`<polygon points="0,0 60,30 60,140 0,200" fill="${w1}" opacity=".95"/><polygon points="320,0 260,30 260,140 320,200" fill="${w1}" opacity=".95"/>`)
+    s.push(`<polygon points="60,140 260,140 320,200 0,200" fill="url(#${id}f)"/><polygon points="0,0 320,0 260,30 60,30" fill="#0e0e11"/>`)
+    if (L !== 15) for (let y = 40; y < 140; y += 14) s.push(`<line x1="60" y1="${y}" x2="260" y2="${y}" stroke="#000" stroke-opacity=".18"/>`)
+    if (L === 15) for (let x = 70; x < 260; x += 22) for (let y = 40; y < 136; y += 22) s.push(`<rect x="${x}" y="${y}" width="18" height="18" rx="5" fill="#fff" opacity=".18"/>`)
+    if (L === 14 || L === 20) s.push(`<rect x="60" y="30" width="200" height="6" fill="#d8b44a"/><rect x="60" y="134" width="200" height="6" fill="#d8b44a"/>`)
+    s.push(`<rect x="60" y="30" width="200" height="110" fill="url(#${id}l)"/>`)
+    // Fenster mit Gittern (bis Stufe 9)
+    if (L <= 9) s.push(`<rect x="146" y="44" width="28" height="20" fill="#7fb6d9" opacity=".55"/><path d="M152 44v20M158 44v20M164 44v20M170 44v20" stroke="#2b2d32" stroke-width="2"/>`)
+    // Lampe
+    s.push(L >= 16 ? `<g transform="translate(160 34)"><path d="M-16 6h32l-6 8h-20z" fill="#d8b44a"/><circle cx="-10" cy="16" r="2.5" fill="#fff6c8"/><circle cx="0" cy="17" r="2.5" fill="#fff6c8"/><circle cx="10" cy="16" r="2.5" fill="#fff6c8"/></g>` : `<line x1="160" y1="30" x2="160" y2="38" stroke="#555"/><circle cx="160" cy="41" r="4" fill="#ffd98a"/>`)
+    // Bett links
+    if (L <= 2) s.push(`<rect x="70" y="124" width="62" height="12" rx="3" fill="${L === 1 ? '#7d7563' : '#8a8f9a'}"/><rect x="72" y="120" width="16" height="7" rx="3" fill="#cfcabd"/>` + (L === 1 ? '<circle cx="100" cy="130" r="4" fill="#5b5141" opacity=".8"/><circle cx="116" cy="128" r="3" fill="#5b5141" opacity=".7"/>' : ''))
+    else if (L >= 16) s.push(`<rect x="66" y="108" width="80" height="26" rx="4" fill="${L === 20 ? '#7a1020' : '#3c2b4a'}"/><rect x="66" y="100" width="80" height="10" rx="3" fill="${L === 20 ? '#d8b44a' : '#cfc7e8'}"/><rect x="70" y="102" width="20" height="8" rx="3" fill="#fff"/><rect x="66" y="132" width="80" height="4" fill="#111"/>`)
+    else s.push(`<rect x="68" y="112" width="70" height="18" rx="2" fill="${L >= 9 ? '#2f6f8f' : '#55606d'}"/><rect x="70" y="106" width="20" height="8" rx="3" fill="#e9e6dd"/><path d="M68 130v8M138 130v8" stroke="#2b2d32" stroke-width="3"/>`)
+    // Klo und Waschbecken rechts (in jeder Stufe)
+    const gold = L === 14 || L === 20 ? '#e3c25a' : '#d9dde3'
+    s.push(`<rect x="226" y="118" width="20" height="14" rx="4" fill="${gold}"/><rect x="228" y="104" width="16" height="12" rx="2" fill="${gold}" opacity=".9"/><rect x="200" y="96" width="18" height="6" rx="2" fill="${gold}"/><rect x="207" y="102" width="4" height="30" fill="#8b9099"/>`)
+    // Besonderheiten je Stufe
+    if (L === 1) s.push('<path d="M60 30l26 0 -26 22z" fill="none" stroke="#bbb" stroke-opacity=".35"/><rect x="176" y="124" width="12" height="12" rx="2" fill="#6b6152"/>')
+    if (L === 3) s.push('<rect x="96" y="70" width="18" height="12" fill="#151515"/><circle cx="102" cy="77" r="2.5" fill="#e3c25a"/><rect x="106" y="74" width="5" height="5" fill="#7ee08a"/>')
+    if (L >= 4 && L <= 8) s.push('<rect x="150" y="122" width="34" height="4" rx="2" fill="#666"/><rect x="146" y="116" width="6" height="16" rx="2" fill="#333"/><rect x="182" y="116" width="6" height="16" rx="2" fill="#333"/>')
+    if (L >= 5) s.push(`<g transform="translate(248 38)"><rect x="-10" y="-4" width="14" height="8" rx="2" fill="#cfd3da"/><circle cx="-12" cy="0" r="2" fill="#ff3b3b"><animate attributeName="opacity" values="1;.2;1" dur="1.4s" repeatCount="indefinite"/></circle></g>`)
+    if (L >= 6 && L <= 13) s.push('<rect x="264" y="92" width="10" height="14" rx="2" fill="#2b2d32"/><circle cx="269" cy="96" r="1.6" fill="#7ee08a"/>')
+    if (L === 7) s.push('<path d="M60 140h200" stroke="#ffd23d" stroke-width="5" stroke-dasharray="10 8"/>')
+    if (L >= 9 && L <= 14) s.push('<rect x="150" y="76" width="44" height="26" rx="2" fill="#111"/><rect x="153" y="79" width="38" height="20" fill="#2a6f9f"/><rect x="154" y="80" width="14" height="6" fill="#8fd0ff" opacity=".6"/>')
+    if (L === 12) for (let i = 0; i < 2; i++) s.push(`<rect x="${88 + i * 22}" y="60" width="18" height="46" rx="2" fill="#16181c"/>` + [0, 1, 2, 3, 4].map(k => `<circle cx="${92 + i * 22}" cy="${66 + k * 8}" r="1.5" fill="${k % 2 ? '#3fe0c5' : '#7ee08a'}"/>`).join(''))
+    if (L === 16) s.push('<rect x="150" y="112" width="44" height="18" rx="6" fill="#5a2c6e"/><rect x="152" y="104" width="40" height="10" rx="5" fill="#6e3a86"/><circle cx="200" cy="110" r="6" fill="#2f8a4a"/>')
+    if (L === 19) for (let i = 0; i < 26; i++) s.push(`<circle cx="${70 + (i * 37) % 185}" cy="${40 + (i * 23) % 92}" r="${1 + (i % 3)}" fill="#c9a6ff" opacity=".8"/>`)
+    if (L === 20) s.push('<g transform="translate(160 62)"><path d="M-20 10l6-14 7 8 7-12 7 12 7-8 6 14z" fill="#ffd84a" stroke="#a8862a"/><rect x="-20" y="10" width="40" height="5" fill="#ffd84a"/></g><polygon points="120,140 200,140 214,200 106,200" fill="#8a1420" opacity=".85"/>')
+    if (glow) s.push(`<rect x="0" y="186" width="320" height="14" fill="${glow}" opacity=".35"/><rect x="60" y="136" width="200" height="4" fill="${glow}" opacity=".7"/>`)
+    // Front: Gitter, Panzerglas, Laser, Plasma
+    if (L === 8 || L === 11) { const n = L === 8 ? 1 : 3; for (let i = 0; i < n; i++) s.push(`<line x1="0" y1="${120 - i * 26}" x2="320" y2="${120 - i * 26}" stroke="#ff2b2b" stroke-width="2.5"/><line x1="0" y1="${120 - i * 26}" x2="320" y2="${120 - i * 26}" stroke="#ff2b2b" stroke-width="9" stroke-opacity=".18"/>`) }
+    if (L === 10) s.push('<rect width="320" height="200" fill="#8fd0ff" opacity=".12"/><path d="M30 0l-30 60M90 0l-70 140M220 0l-60 120" stroke="#fff" stroke-opacity=".16" stroke-width="6"/>')
+    else if (L === 17) s.push('<rect width="320" height="200" fill="#5fe6ff" opacity=".1"/>' + [0, 1, 2, 3, 4, 5].map(i => `<line x1="${20 + i * 56}" y1="0" x2="${20 + i * 56}" y2="200" stroke="#5fe6ff" stroke-width="3" stroke-opacity=".7"/>`).join(''))
+    else { const n = 11; for (let i = 0; i < n; i++) { const x = 14 + i * 29.2; s.push(`<rect x="${x}" y="0" width="6" height="200" fill="${barC}"/><rect x="${x + 1}" y="0" width="1.6" height="200" fill="#fff" opacity=".22"/>`) } s.push(`<rect x="0" y="0" width="320" height="8" fill="${barC}"/><rect x="0" y="192" width="320" height="8" fill="${barC}"/>`) }
+    return `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zelle Stufe ${L}">${s.join('')}</svg>`
+  }
+
+  // ------------------------------------------------------------ Bereiche
+  const TABS = ['uebersicht', 'zelle', 'rang', 'stufen', 'regeln']
+  let tab = 'uebersicht'
+  function show (t) {
+    if (!TABS.includes(t)) t = 'uebersicht'
+    tab = t
+    for (const x of TABS) $('v-' + x).classList.toggle('on', x === t)
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t))
+    if (t === 'zelle') loadZelle(); if (t === 'rang') loadRang(); if (t === 'stufen') loadStufen(); if (t === 'uebersicht') loadInfo()
+    window.scrollTo(0, 0)
+  }
+  document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.tab }))
+  window.addEventListener('hashchange', () => show(location.hash.slice(1)))
+
+  // Name merken (dieses Gerät) und Suche
+  let me = new URLSearchParams(location.search).get('name') || store.get('gk-name') || ''
+  function remember (n) { me = n; store.set('gk-name', n); const r = JSON.parse(store.get('gk-recent') || '[]').filter(x => x.toLowerCase() !== n.toLowerCase()); r.unshift(n); store.set('gk-recent', JSON.stringify(r.slice(0, 4))); recent() }
+  function recent () { let r = []; try { r = JSON.parse(store.get('gk-recent') || '[]') } catch (_) {} $('recent').innerHTML = r.map(n => `<button class="chip" data-name="${esc(n)}">@${esc(n)}</button>`).join('') }
+  document.addEventListener('click', e => { const c = e.target.closest('[data-name]'); if (c) { e.preventDefault(); go(c.dataset.name) } })
+  document.querySelectorAll('form[data-go]').forEach(f => f.addEventListener('submit', e => { e.preventDefault(); const q = f.q.value.trim().replace(/^@/, ''); if (q) go(q) }))
+  function go (name) { me = name; $('qZelle').value = name; if (location.hash !== '#zelle') location.hash = 'zelle'; else loadZelle() }
+
+  // ------------------------------------------------------------ Übersicht
+  async function loadInfo () {
+    try {
+      const d = await get('/api/info')
+      const live = $('live'); live.classList.toggle('on', !!d.fresh); live.textContent = d.fresh ? 'Live' : 'Offline'
+      $('seasonName').textContent = d.season ? d.season.name : ''
+      const t = d.totals || {}
+      $('sPris').textContent = fmt(t.prisoners); $('sCells').textContent = fmt(t.withCell) + ' / ' + fmt(t.cells); $('sLikes').textContent = t.top ? 'St. ' + t.top : '–'
+      $('sMeter').textContent = (t.meter || 0) + ' %'; $('sMeterBar').style.width = (t.meter || 0) + '%'
+      const k = d.king
+      put($('kingBox'), k ? `<div class="king" data-name="${esc(k.name.replace(/^@/, ''))}" style="cursor:pointer">${crown()}${ava(k, 'gold')}<div class="who"><div class="tag">♛ Sitzt auf dem Thron</div><div class="nm">${esc(k.nick || k.name)}</div><div class="sub">${esc(k.name)} · Stufe ${k.level} · ${esc(k.levelName)} · ${fmt(k.points)} Macht-Punkte</div></div></div>`
+        : '<div class="note">Der Thron ist gerade leer. Wer Platz 1 holt, wird Gitterkönig.</div>')
+      put($('podiumHome'), podium(d.top3 || []))
+      put($('feed'), (d.news || []).length ? d.news.map(n => `<div class="ev"><div class="ic">${n.kind === 'cell' ? '🔑' : n.flucht ? '🏃' : '⬆️'}</div><div class="tx">${n.kind === 'cell' ? `<b>${esc(n.nick || n.name)}</b> bezieht Zelle ${n.cell}` : `<b>${esc(n.nick || n.name)}</b> ist jetzt Stufe ${n.level} · ${esc(n.levelName)}${n.flucht ? ' (Fluchtbeute)' : ''}`}</div><time>${ago(n.t)}</time></div>`).join('') : '<div class="note">Noch ist es ruhig im Block.</div>')
+      $('updated').textContent = 'Stand: ' + new Date(d.at || Date.now()).toLocaleTimeString('de-DE')
+    } catch (_) { $('updated').textContent = 'Gerade keine Verbindung zum Knast – gleich nochmal.' }
+  }
+  const crown = () => '<svg class="crown" viewBox="0 0 32 32"><path d="M3 10l6 6 7-11 7 11 6-6-3 15H6z" fill="#ffd84a"/></svg>'
+  function podium (l) {
+    const by = p => l.find(x => x.pos === p)
+    return [2, 1, 3].map(p => { const x = by(p); return x ? `<div class="pod p${p}" data-name="${esc(x.name.replace(/^@/, ''))}">${ava(x, p === 1 ? 'gold' : '')}<div class="pl">${p}</div><div class="nm">${esc(x.nick || x.name)}</div><div class="pt num">${fmt(x.points)} Pkt.</div></div>` : '<div></div>' }).join('')
+  }
+
+  // ------------------------------------------------------------ Meine Zelle
+  async function loadZelle () {
+    const box = $('zelleBox')
+    if (!me) { box.innerHTML = '<div class="note">Gib oben deinen TikTok-Namen ein – ohne @, so wie er in deinem Profil steht.</div>'; return }
+    $('qZelle').value = me
+    if (!box.dataset.for || box.dataset.for !== me) box.innerHTML = '<div class="skel" style="height:420px"></div>'
+    try {
+      const d = await get('/api/zelle?name=' + encodeURIComponent(me))
+      const firstTime = box.dataset.for !== me
+      box.dataset.for = me
+      if (d.found) {
+        if (firstTime) remember(d.p.name.replace(/^@/, ''))
+        const pct = Math.round((d.p.next ? d.p.next.frac : 1) * 100)
+        // (beim ersten Mal läuft der Balken von 0 hoch, beim Auffrischen steht er gleich richtig)
+        if (put(box, akte(d.p, firstTime ? 0 : pct)) && firstTime) requestAnimationFrame(() => requestAnimationFrame(() => { const b = box.querySelector('.pbar i'); if (b) b.style.width = pct + '%' }))
+      } else if (d.suggestions && d.suggestions.length) put(box, `<div class="note">Meintest du …</div><div class="chips">${d.suggestions.map(s => `<button class="chip" data-name="${esc(s.q || s.name.replace(/^@/, ''))}">${esc(s.nick || s.name)} <small>${esc(s.name)} · St. ${s.level}</small></button>`).join('')}</div>`)
+      else put(box, `<div class="note"><b>@${esc(me)}</b> sitzt noch nicht im Knast.<br>Komm in den LIVE von <a href="https://www.tiktok.com/@gitterkoenig/live" target="_blank" rel="noopener">@gitterkoenig</a> und mach mit – dann ziehst du ein und stehst hier.</div>`)
+    } catch (_) { put(box, '<div class="note">Gerade keine Verbindung zum Knast. Versuch es gleich nochmal.</div>') }
+  }
+  const WHERE = { cell: ['🟢', 'In der Zelle'], hole: ['🕳️', 'Im Loch'], throne: ['♛', 'Auf dem Thron'], none: ['⏳', 'Noch keine Zelle'] }
+  function akte (p, pct) {
+    const w = WHERE[p.where] || WHERE.none
+    const no = String(p.no).padStart(6, '0')
+    const nx = p.next
+    const bar = `<div class="pbar"><i style="width:${pct}%"></i></div>`
+    const prog = p.cell == null
+      ? `<div class="missing">Noch keine eigene Zelle. <b>Mach im LIVE mit</b>, dann ziehst du ein.</div>`
+      : nx ? `<div class="row"><span>Stufe ${p.level}</span><span>${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</span><span>Stufe ${nx.level}</span></div>${bar}
+             <div class="missing"><b class="num">${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</b> geschafft bis Stufe ${nx.level} · ${esc(nx.name)}<br><span class="muted">Dann bekommt deine Zelle: ${esc(nx.title)}${nx.block !== p.block ? ` – und du ziehst in Block ${nx.block}!` : ''}</span></div>`
+        : `${bar}<div class="missing">Höchste Stufe erreicht: <b>Welt-Staatsfeind</b>. Mehr Knast geht nicht.</div>`
+    return `<div class="card akte">
+      <div class="top"><span>Häftlingsakte · Nr. ${no}</span><span class="stamp">${p.where === 'throne' ? 'König' : 'Gesucht'}</span></div>
+      <div class="main">
+        <div class="mug">${p.avatar ? `<img src="${esc(p.avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;ph&quot;>${initials(p.name)}</div>'">` : `<div class="ph">${initials(p.name)}</div>`}<div class="plate">${no}</div></div>
+        <div class="who2">
+          <div class="nm">${esc(p.nick || p.name)}</div>
+          ${p.nick ? `<div class="nick">${esc(p.name)}</div>` : ''}
+          <div class="badges">
+            <span class="bd blk" style="background:${esc(p.color)}">BLOCK ${esc(p.block)}</span>
+            ${p.cell != null ? `<span class="bd">Zelle ${p.cell}</span>` : ''}
+            ${p.rank ? `<span class="bd">Platz ${fmt(p.rank)}</span>` : ''}
+            <span class="bd">${w[0]} ${w[1]}</span>
+          </div>
+          <div class="lvl"><span class="n">${p.level}</span><span class="t">${esc(p.levelName)}</span><span class="c">${esc(p.blockName)} · Zelle: ${esc(p.cellTitle)}</span></div>
+        </div>
+      </div>
+      <div class="prog">${prog}</div>
+      <div class="cellpic">${cellSvg(p.level, 'me')}<div class="cap"><span>Deine Zelle</span><span>${esc(p.cellTitle)}</span></div></div>
+      <div class="facts">
+        <div><b class="num">${fmt(p.points)}</b><span>Macht-Punkte</span></div>
+        <div><b class="num">${p.level}/20</b><span>Stufe</span></div>
+        <div><b>${p.rank ? fmt(p.rank) + '.' : '–'}</b><span>Platz${p.of ? ' von ' + fmt(p.of) : ''}</span></div>
+        <div><b>${day(p.since)}</b><span>Dabei seit</span></div>
+      </div>
+      <div class="actions"><a class="btn small" href="#rang">In der Rangliste</a><button class="btn small ghost" id="share" type="button">Link teilen</button></div>
+    </div>`
+  }
+  document.addEventListener('click', async e => {
+    if (!e.target.closest('#share')) return
+    const url = location.origin + location.pathname + '?name=' + encodeURIComponent(me) + '#zelle'
+    try { if (navigator.share) { await navigator.share({ title: 'Meine Zelle bei GITTERKÖNIG', url }); return } } catch (_) { return }
+    try { await navigator.clipboard.writeText(url); toast('Link kopiert') } catch (_) { toast(url) }
+  })
+
+  // ------------------------------------------------------------ Rangliste
+  async function loadRang () {
+    try {
+      const [r, i] = await Promise.all([get('/api/rang?name=' + encodeURIComponent(me || '')), get('/api/info')])
+      $('rangCount').textContent = fmt(r.count) + ' Häftlinge mit Punkten'
+      put($('podium'), podium(r.list.slice(0, 3)))
+      const mine = n => me && n.name.replace(/^@/, '').toLowerCase() === String(me).toLowerCase()
+      const row = x => `<div class="row1 ${mine(x) ? 'me' : ''}" data-name="${esc(x.name.replace(/^@/, ''))}"><div class="ps">${x.pos}</div>${ava(x)}<div class="nm">${x.king ? '♛ ' : ''}${esc(x.nick || x.name)}<small>Stufe ${x.level} · ${esc(x.levelName)}${x.cell != null ? ' · Zelle ' + x.cell : ''}</small></div><div class="pt num">${fmt(x.points)}<small>PUNKTE</small></div></div>`
+      put($('rangList'), r.list.slice(3).map(row).join(''))
+      put($('meBox'), r.me && r.me.pos > 30 ? `<h2>Dein Platz</h2><div class="list">${r.me.near.map(row).join('')}</div><h2>Top 30</h2>` : '')
+      put($('fame'), (i.ruhm || []).length ? i.ruhm.map(k => `<div><span class="c">♛</span><span class="n">${esc(k.nick || k.name)}</span><time>${day(k.at)}</time></div>`).join('') : '<div class="note">Noch kein König in dieser Saison.</div>')
+    } catch (_) {}
+  }
+
+  // ------------------------------------------------------------ Stufen
+  let stufenFor = null
+  async function loadStufen () {
+    try {
+      const [s, z] = await Promise.all([get('/api/stufen'), me ? get('/api/zelle?name=' + encodeURIComponent(me)) : Promise.resolve(null)])
+      const lfc = $('likesForCell'); if (lfc) lfc.textContent = s.likesForCell
+      const myL = z && z.found ? z.p.level : 0
+      if (stufenFor === myL && $('stufenBox').innerHTML) return
+      stufenFor = myL
+      const groups = ['D', 'C', 'B', 'A'].map(b => ({ b, items: s.levels.filter(l => l.block === b) }))
+      $('stufenBox').innerHTML = groups.map(g => `<div class="block"><div class="bh"><span class="tg" style="background:${esc(g.items[0].color)}">${g.b}</span>Block ${g.b} · ${esc(g.items[0].blockName)}<small>Stufe ${g.items[0].level}–${g.items[g.items.length - 1].level}</small></div>${g.items.map(l => `<div class="lv ${l.level === myL ? 'mine' : l.level === myL + 1 ? 'next' : ''}">${cellSvg(l.level, 's' + l.level)}<div class="nm">${l.level}. ${esc(l.name)}<small>${esc(l.title)}</small>${l.level === myL ? '<span class="here">DU BIST HIER</span>' : ''}</div><div class="need num">${l.level === 1 ? 'Start' : l.level === 20 ? 'MAX' : ''}</div></div>`).join('')}</div>`).join('')
+    } catch (_) {}
+  }
+
+  // ------------------------------------------------------------ Start + Auffrischen
+  recent()
+  const first = location.hash.slice(1)
+  if (new URLSearchParams(location.search).get('name') && !first) location.hash = 'zelle'
+  show(first || (new URLSearchParams(location.search).get('name') ? 'zelle' : 'uebersicht'))
+  setInterval(() => { if (document.hidden) return; if (tab === 'uebersicht') loadInfo(); else if (tab === 'zelle') loadZelle(); else if (tab === 'rang') loadRang() }, 4000)
+  const liveBadge = () => get('/api/info').then(d => { const l = $('live'); l.classList.toggle('on', !!d.fresh); l.textContent = d.fresh ? 'Live' : 'Offline' }).catch(() => {})
+  if (tab !== 'uebersicht') liveBadge() // (sonst stand auf den anderen Seiten bis zu 15 s „Offline“)
+  setInterval(() => { if (!document.hidden && tab !== 'uebersicht') liveBadge() }, 15000)
+})()
+</script>
+</body>
+</html>
