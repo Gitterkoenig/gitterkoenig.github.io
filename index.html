@@ -649,7 +649,7 @@
     g.fillStyle = '#b3121b'; g.font = `900 30px ${BODY}`; g.fillText('TATVORWURF', 540, 1556)
     g.fillStyle = '#1a1208'; g.font = `800 42px ${BODY}`; wrapText(g, crimeOf(p.name), 540, 1612, 800, 50)
     // Stempel
-    g.save(); g.translate(820, 1150); g.rotate(-0.22); g.strokeStyle = 'rgba(179,18,27,.85)'; g.lineWidth = 7; rr(g, -170, -54, 340, 108, 14); g.stroke()
+    g.save(); g.translate(800, 1050); g.rotate(-0.22); g.strokeStyle = 'rgba(179,18,27,.85)'; g.lineWidth = 7; rr(g, -170, -54, 340, 108, 14); g.stroke()
     g.fillStyle = 'rgba(179,18,27,.85)'; g.font = `900 30px ${BODY}`; g.fillText('HÄFTLING', 0, -8); g.font = `900 40px ${HEAD}`; g.fillText('#' + String(p.no).padStart(6, '0'), 0, 36); g.restore()
     // Fuß
     g.fillStyle = '#3a2a12'; g.font = `800 34px ${BODY}`; g.fillText('Finde deine Zelle:', 540, 1760)
