@@ -207,6 +207,16 @@
   .toast { position: fixed; left: 50%; bottom: calc(var(--tabs) + 18px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px); opacity: 0; transition: .25s; background: #f3f3f5; color: #111; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; z-index: 40; pointer-events: none; }
   .toast.on { opacity: 1; transform: translateX(-50%); }
   /* ---------- LIVE-Leiste, echte Fotos, Knast-Plan, Fahndungsplakat (22.11.) ---------- */
+  /* WhatsApp-Community (22.11. abends, sein Wort: „füg es in der Website ein … ich will viele Leute bekommen“) */
+  .waTop { margin-left: 8px; width: 36px; height: 36px; flex: none; display: inline-grid; place-items: center; border-radius: 50%; background: #25d366; box-shadow: 0 0 0 3px rgba(37,211,102,.18); }
+  .waTop svg { width: 20px; height: 20px; }
+  .wa { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin: 16px 0 4px; padding: 14px 14px; border-radius: 16px; background: linear-gradient(135deg, #0c3b25, #12693d); border: 1px solid #25d366; color: #fff; text-decoration: none; }
+  .wa b { display: block; font: 800 16px var(--body); }
+  .wa p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; color: #d6f5e3; }
+  .wa small { display: block; margin-top: 6px; font-size: 11px; color: #9fd8b8; }
+  .wa .go { padding: 10px 14px; border-radius: 999px; background: #25d366; color: #052e16; font: 800 14px var(--body); white-space: nowrap; }
+  .waCta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #0c3b25; border: 1px solid #25d366; color: #d6f5e3; font-size: 13px; text-decoration: none; }
+  .waCta b { color: #25d366; white-space: nowrap; }
   .livebar { display: none; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin: 12px 0 0; padding: 10px 12px; border-radius: 14px; background: #1a0e10; border: 1px solid rgba(255,59,59,.35); font: 700 13px var(--body); }
   .livebar.on { display: flex; }
   .livebar .lv { display: inline-flex; align-items: center; gap: 6px; color: #fff; }
@@ -248,6 +258,7 @@
       <b>GITTER<i>KÖNIG</i></b>
     </a>
     <a id="live" class="live" href="https://www.tiktok.com/@gitterkoenig/live" target="_blank" rel="noopener">Offline</a>
+    <a class="waTop" href="https://chat.whatsapp.com/IQgjKvRyBLn1VdLmpUOBbV" target="_blank" rel="noopener" aria-label="WhatsApp-Community beitreten" title="WhatsApp-Community"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2.2A9.8 9.8 0 0 0 3.6 17l-1.3 4.7 4.8-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.8a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1.1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.4-.2z"/></svg></a>
   </div>
 </header>
 <div class="wrap"><div id="liveBar" class="livebar" aria-live="polite"></div></div>
@@ -264,6 +275,11 @@
       </form>
       <div class="chips" id="recent"></div>
     </div>
+
+    <a class="wa" href="https://chat.whatsapp.com/IQgjKvRyBLn1VdLmpUOBbV" target="_blank" rel="noopener">
+      <div><b>📲 Gitterkönig-Community auf WhatsApp</b><p>Erfahr als Erster, wann der Knast live geht, wer Gitterkönig der Woche ist und was als Nächstes gebaut wird.</p><small>Kostenlos · WhatsApp ab 13 Jahren</small></div>
+      <span class="go">Beitreten</span>
+    </a>
 
     <h2>Der Gitterkönig <small id="seasonName"></small></h2>
     <div id="kingBox"><div class="skel"></div></div>
@@ -325,6 +341,7 @@
       <div class="step"><div><b>★ Prestige nach Stufe 20</b><p>Stufe 20 ist nicht das Ende: Ist sie voll, kommt Prestige. Du startest wieder bei Stufe 1, aber mit Stern – erst Silber, dann Gold, Diamant und Legende. Dein Platz in der Rangliste bleibt.</p></div></div>
       <div class="step"><div><b>Platz 1 wird Gitterkönig</b><p>Wer ganz oben steht, sitzt im Glaskäfig auf dem Thron über dem Schacht. Wer den König überholt, stürzt ihn ins Loch.</p></div></div>
       <div class="step"><div><b>Massenausbruch</b><p>Ist das Ausbruch-Meter voll, gehen alle Türen auf. Schreib schnell <span class="kbd">Flucht</span> in den Chat – die ersten fünf kommen raus und kriegen Fluchtbeute.</p></div></div>
+      <div class="step"><div><b>📲 WhatsApp-Community</b><p>Alle News zuerst: wann der LIVE startet, wer Gitterkönig der Woche ist und was als Nächstes gebaut wird. <a href="https://chat.whatsapp.com/IQgjKvRyBLn1VdLmpUOBbV" target="_blank" rel="noopener">Jetzt beitreten</a> (kostenlos, WhatsApp ab 13).</p></div></div>
       <div class="step"><div><b>Deine Zelle im Stream</b><p>Schreib <span class="kbd">info</span> in den Chat – dann fährt die Kamera zu deiner Zelle oder du siehst, wie viel noch fehlt. Mit <span class="kbd">!rang</span> siehst du deinen Platz.</p></div></div>
     </div>
     <h2>Fragen</h2>
@@ -371,6 +388,7 @@
 
   // Woher die Zahlen kommen: dieselbe Adresse (Tunnel) – oder, auf GitHub Pages, die Adresse aus adresse.json
   let API = ''
+  const WA_LINK = 'https://chat.whatsapp.com/IQgjKvRyBLn1VdLmpUOBbV' // (WhatsApp-Community, 22.11. abends)
   const ready = (async () => { if (/github\.io$/.test(location.hostname)) { try { const r = await fetch('adresse.json', { cache: 'no-store' }); API = (await r.json()).api || '' } catch (_) {} } })()
   const get = async (p) => { await ready; const r = await fetch(API + p, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json() }
 
@@ -542,6 +560,7 @@
         <div><b>${day(p.since)}</b><span>Dabei seit</span></div>
       </div>
       <div class="actions"><button class="btn small" id="plakat" type="button">🚨 Fahndungsplakat</button><button class="btn small ghost" id="share" type="button">Link teilen</button><a class="btn small ghost" href="#rang">Rangliste</a></div>
+      <a class="waCta" href="${WA_LINK}" target="_blank" rel="noopener"><span>📲 Willst du wissen, wann der Knast wieder live ist und wie deine Zelle wächst?</span><b>WhatsApp-Community →</b></a>
     </div>`
   }
   document.addEventListener('click', async e => {
