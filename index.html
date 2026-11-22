@@ -68,6 +68,12 @@
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; background: #22222a; border: 1px solid var(--line2); color: var(--text); font: 600 14px var(--body); cursor: pointer; }
   .chip small { color: var(--muted); font-weight: 600; }
+  /* Zellennummer und Prestige (22.11. abends) */
+  .zno { display: inline-block; padding: 0 6px; border-radius: 6px; background: #2b2b35; border: 1px solid var(--line2); color: #fff; font-weight: 800; font-size: 11px; letter-spacing: .3px; }
+  .pod .zno { margin: 2px auto 3px; }
+  .pst { color: #ffd84a; font-weight: 800; }
+  .bd.zelle { background: #fff; color: #111; font-weight: 800; }
+  .bd.pst { background: #2a2410; color: #ffd84a; border-color: #6b5a1a; }
 
   /* ---------- Zahlen ---------- */
   .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
@@ -316,6 +322,7 @@
       <div class="step"><div><b>Komm in den LIVE</b><p>Gitterkönig läuft im TikTok-LIVE von <a href="https://www.tiktok.com/@gitterkoenig" target="_blank" rel="noopener">@gitterkoenig</a>. Momo, der Knast-Boss, führt dich durch den Block.</p></div></div>
       <div class="step"><div><b>Mitmachen = eigene Zelle</b><p>Wer im LIVE mitmacht, zieht ein – mit seinem Namen über der Tür. Schreiben musst du dafür nichts.</p></div></div>
       <div class="step"><div><b>Aufsteigen</b><p>Wer mitmacht, steigt höher. Mit jeder Stufe wird deine Zelle live ausgebaut: von der Dreckszelle bis zur Kronen-Suite.</p></div></div>
+      <div class="step"><div><b>★ Prestige nach Stufe 20</b><p>Stufe 20 ist nicht das Ende: Ist sie voll, kommt Prestige. Du startest wieder bei Stufe 1, aber mit Stern – erst Silber, dann Gold, Diamant und Legende. Dein Platz in der Rangliste bleibt.</p></div></div>
       <div class="step"><div><b>Platz 1 wird Gitterkönig</b><p>Wer ganz oben steht, sitzt im Glaskäfig auf dem Thron über dem Schacht. Wer den König überholt, stürzt ihn ins Loch.</p></div></div>
       <div class="step"><div><b>Massenausbruch</b><p>Ist das Ausbruch-Meter voll, gehen alle Türen auf. Schreib schnell <span class="kbd">Flucht</span> in den Chat – die ersten fünf kommen raus und kriegen Fluchtbeute.</p></div></div>
       <div class="step"><div><b>Deine Zelle im Stream</b><p>Schreib <span class="kbd">info</span> in den Chat – dann fährt die Kamera zu deiner Zelle oder du siehst, wie viel noch fehlt. Mit <span class="kbd">!rang</span> siehst du deinen Platz.</p></div></div>
@@ -470,7 +477,8 @@
   const crown = () => '<svg class="crown" viewBox="0 0 32 32"><path d="M3 10l6 6 7-11 7 11 6-6-3 15H6z" fill="#ffd84a"/></svg>'
   function podium (l) {
     const by = p => l.find(x => x.pos === p)
-    return [2, 1, 3].map(p => { const x = by(p); return x ? `<div class="pod p${p}" data-name="${esc(x.name.replace(/^@/, ''))}">${ava(x, p === 1 ? 'gold' : '')}<div class="pl">${p}</div><div class="nm">${esc(x.nick || x.name)}</div><div class="pt num">${fmt(x.points)} Pkt.</div></div>` : '<div></div>' }).join('')
+    // (22.11. abends, sein Wort: „dass auf der Website auch die Zellennummer steht“ – auch bei den Top 3)
+    return [2, 1, 3].map(p => { const x = by(p); return x ? `<div class="pod p${p}" data-name="${esc(x.name.replace(/^@/, ''))}">${ava(x, p === 1 ? 'gold' : '')}<div class="pl">${p}</div><div class="nm">${esc(x.nick || x.name)}</div>${x.cell != null ? `<div class="zno">Zelle ${x.cell}</div>` : ''}<div class="pt num">${x.prestige > 0 ? `<b class="pst">★ ${esc(x.prestigeName)}</b> · ` : ''}${fmt(x.points)} Pkt.</div></div>` : '<div></div>' }).join('')
   }
 
   // ------------------------------------------------------------ Meine Zelle
@@ -486,10 +494,10 @@
       if (d.found) {
         lastCard = d.p; meCell = d.p.cell; meCellFor = me
         if (firstTime) remember(d.p.name.replace(/^@/, ''))
-        const pct = Math.round((d.p.next ? d.p.next.frac : 1) * 100)
+        const pct = Math.round((d.p.next ? d.p.next.frac : d.p.prestigeNext ? d.p.prestigeNext.frac : 1) * 100)
         // (beim ersten Mal läuft der Balken von 0 hoch, beim Auffrischen steht er gleich richtig)
         if (put(box, akte(d.p, firstTime ? 0 : pct)) && firstTime) requestAnimationFrame(() => requestAnimationFrame(() => { const b = box.querySelector('.pbar i'); if (b) b.style.width = pct + '%' }))
-      } else if (d.suggestions && d.suggestions.length) put(box, `<div class="note">Meintest du …</div><div class="chips">${d.suggestions.map(s => `<button class="chip" data-name="${esc(s.q || s.name.replace(/^@/, ''))}">${esc(s.nick || s.name)} <small>${esc(s.name)} · St. ${s.level}</small></button>`).join('')}</div>`)
+      } else if (d.suggestions && d.suggestions.length) put(box, `<div class="note">Meintest du …</div><div class="chips">${d.suggestions.map(s => `<button class="chip" data-name="${esc(s.q || s.name.replace(/^@/, ''))}">${esc(s.nick || s.name)} <small>${esc(s.name)}${s.prestige > 0 ? ' · ★ ' + esc(s.prestigeName) : ''} · St. ${s.level}${s.cell != null ? ' · Zelle ' + s.cell : ''}</small></button>`).join('')}</div>`)
       else put(box, `<div class="note"><b>@${esc(me)}</b> sitzt noch nicht im Knast.<br>Komm in den LIVE von <a href="https://www.tiktok.com/@gitterkoenig/live" target="_blank" rel="noopener">@gitterkoenig</a> und mach mit – dann ziehst du ein und stehst hier.</div>`)
     } catch (_) { put(box, '<div class="note">Gerade keine Verbindung zum Knast. Versuch es gleich nochmal.</div>') }
   }
@@ -503,7 +511,8 @@
       ? `<div class="missing">Noch keine eigene Zelle. <b>Mach im LIVE mit</b>, dann ziehst du ein.</div>`
       : nx ? `<div class="row"><span>Stufe ${p.level}</span><span>${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</span><span>Stufe ${nx.level}</span></div>${bar}
              <div class="missing"><b class="num">${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</b> geschafft bis Stufe ${nx.level} · ${esc(nx.name)}<br><span class="muted">Dann bekommt deine Zelle: ${esc(nx.title)}${nx.block !== p.block ? ` – und du ziehst in Block ${nx.block}!` : ''}</span></div>`
-        : `${bar}<div class="missing">Höchste Stufe erreicht: <b>Welt-Staatsfeind</b>. Mehr Knast geht nicht.</div>`
+        : `<div class="row"><span>Stufe 20</span><span>${Math.min(99, Math.floor(((p.prestigeNext && p.prestigeNext.frac) || 0) * 100))} %</span><span>★ ${esc(p.prestigeNext ? p.prestigeNext.name : 'Prestige')}</span></div>${bar}
+             <div class="missing"><b>Stufe 20</b> – die letzte Stufe dieser Runde. Ist sie voll, kommt <b>Prestige ★ ${esc(p.prestigeNext ? p.prestigeNext.name : '')}</b>: Du startest wieder bei Stufe 1, eine Klasse höher, und dein Platz in der Rangliste bleibt.</div>`
     return `<div class="card akte">
       <div class="top"><span>Häftlingsakte · Nr. ${no}</span><span class="stamp">${p.where === 'throne' ? 'König' : 'Gesucht'}</span></div>
       <div class="main">
@@ -513,7 +522,8 @@
           ${p.nick ? `<div class="nick">${esc(p.name)}</div>` : ''}
           <div class="badges">
             <span class="bd blk" style="background:${esc(p.color)}">BLOCK ${esc(p.block)}</span>
-            ${p.cell != null ? `<span class="bd">Zelle ${p.cell}</span>` : ''}
+            ${p.cell != null ? `<span class="bd zelle">Zelle ${p.cell}</span>` : ''}
+            ${p.prestige > 0 ? `<span class="bd pst">★ ${esc(p.prestigeName)}</span>` : ''}
             ${p.rank ? `<span class="bd">Platz ${fmt(p.rank)}</span>` : ''}
             <span class="bd">${w[0]} ${w[1]}</span>
           </div>
@@ -548,7 +558,7 @@
       $('rangCount').textContent = fmt(r.count) + ' Häftlinge mit Punkten'
       put($('podium'), podium(r.list.slice(0, 3)))
       const mine = n => me && n.name.replace(/^@/, '').toLowerCase() === String(me).toLowerCase()
-      const row = x => `<div class="row1 ${mine(x) ? 'me' : ''}" data-name="${esc(x.name.replace(/^@/, ''))}"><div class="ps">${x.pos}</div>${ava(x)}<div class="nm">${x.king ? '♛ ' : ''}${esc(x.nick || x.name)}<small>Stufe ${x.level} · ${esc(x.levelName)}${x.cell != null ? ' · Zelle ' + x.cell : ''}</small></div><div class="pt num">${fmt(x.points)}<small>PUNKTE</small></div></div>`
+      const row = x => `<div class="row1 ${mine(x) ? 'me' : ''}" data-name="${esc(x.name.replace(/^@/, ''))}"><div class="ps">${x.pos}</div>${ava(x)}<div class="nm">${x.king ? '♛ ' : ''}${esc(x.nick || x.name)}<small>${x.cell != null ? `<span class="zno">Zelle ${x.cell}</span> ` : ''}${x.prestige > 0 ? `<b class="pst">★ ${esc(x.prestigeName)}</b> · ` : ''}Stufe ${x.level} · ${esc(x.levelName)}</small></div><div class="pt num">${fmt(x.points)}<small>PUNKTE</small></div></div>`
       put($('rangList'), r.list.slice(3).map(row).join(''))
       put($('meBox'), r.me && r.me.pos > 30 ? `<h2>Dein Platz</h2><div class="list">${r.me.near.map(row).join('')}</div><h2>Top 30</h2>` : '')
       put($('fame'), (i.ruhm || []).length ? i.ruhm.map(k => `<div><span class="c">♛</span><span class="n">${esc(k.nick || k.name)}</span><time>${day(k.at)}</time></div>`).join('') : '<div class="note">Noch kein König in dieser Saison.</div>')
