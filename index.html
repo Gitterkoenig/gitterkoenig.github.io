@@ -631,9 +631,11 @@
       if (me && meCellFor !== me) { meCellFor = me; try { const z = await get('/api/zelle?name=' + encodeURIComponent(me)); meCell = z.found ? z.p.cell : null } catch (_) {} }
       const d = await get('/api/plan')
       planNames = d.names || {}
-      const segs = Math.ceil(d.cells / 10); const S = 12; const G = 2; const MID = 12
-      const W = segs * (S + G) + 4; const H = 10 * (S + G) + MID + 4
-      const pos = no => { const i = no - 1; const seg = Math.floor(i / 10); const w = i % 10; const fl = Math.floor(w / 2); const side = w % 2; return { x: 2 + seg * (S + G), y: side === 0 ? 2 + (4 - fl) * (S + G) : 2 + 5 * (S + G) + MID + (4 - fl) * (S + G) } }
+      // (22.11. nachts: Halle in die Höhe – Etagen kommen vom Server, alte Daten ohne floors = 5 Etagen)
+      const F = Number(d.floors) || 5; const PS = F * 2
+      const segs = Math.ceil(d.cells / PS); const S = 12; const G = 2; const MID = 12
+      const W = segs * (S + G) + 4; const H = 2 * F * (S + G) + MID + 4
+      const pos = no => { const i = no - 1; const seg = Math.floor(i / PS); const w = i % PS; const fl = Math.floor(w / 2); const side = w % 2; return { x: 2 + seg * (S + G), y: side === 0 ? 2 + (F - 1 - fl) * (S + G) : 2 + F * (S + G) + MID + (F - 1 - fl) * (S + G) } }
       let s = ''
       for (let no = 1; no <= d.cells; no++) {
         const lv = parseInt(d.lv[no - 1], 36) || 0; const p = pos(no)
@@ -642,7 +644,7 @@
       }
       if (meCell && meCell <= d.cells) { const p = pos(meCell); s += `<rect x="${p.x - 2}" y="${p.y - 2}" width="${S + 4}" height="${S + 4}" rx="3" fill="none" stroke="#fff" stroke-width="2.4"><animate attributeName="stroke-opacity" values="1;.25;1" dur="1.3s" repeatCount="indefinite"/></rect>` }
       if (d.cam && d.cam <= d.cells) { const p = pos(d.cam); s += `<circle cx="${p.x + S / 2}" cy="${p.y + S / 2}" r="4.5" fill="#ff3b3b" stroke="#fff" stroke-width="1.2"><animate attributeName="opacity" values="1;.25;1" dur=".9s" repeatCount="indefinite"/></circle>` }
-      s += `<text x="${W - 4}" y="${5 * (S + G) + MID / 2 + 5}" text-anchor="end" font-size="9" fill="#6c717b" font-family="sans-serif">◀ linke Seite oben · rechte Seite unten · Hallenanfang links ▶</text>`
+      s += `<text x="${W - 4}" y="${F * (S + G) + MID / 2 + 5}" text-anchor="end" font-size="9" fill="#6c717b" font-family="sans-serif">◀ linke Seite oben · rechte Seite unten · Hallenanfang links ▶</text>`
       const occ = (d.lv.match(/[^0]/g) || []).length
       $('planInfo').textContent = `${fmt(occ)} von ${fmt(d.cells)} Zellen belegt`
       put($('plan'), `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Plan aller Zellen">${s}</svg><div class="leg"><span><i style="background:${BLOCKC.D}"></i>Block D · St. 1–5</span><span><i style="background:${BLOCKC.C}"></i>Block C · 6–10</span><span><i style="background:${BLOCKC.B}"></i>Block B · 11–15</span><span><i style="background:${BLOCKC.A}"></i>Block A · 16–20</span><span><i style="background:#ff3b3b;border-radius:50%"></i>Kamera gerade</span>${meCell ? '<span><i style="background:none;border:2px solid #fff"></i>Deine Zelle</span>' : ''}</div>`)
