@@ -563,7 +563,6 @@
       <div class="prog">${prog}</div>
       <div class="crime"><small>TATVORWURF</small>${esc(crimeOf(p.name))}</div>
       ${p.foto ? `<div class="realfoto"><img src="${esc(API + p.foto.url)}" alt="Echtes Foto deiner Zelle" onerror="this.closest('.realfoto').remove()"><span class="badge${p.onCam ? ' live' : ''}">${p.onCam ? '● GERADE LIVE IM STREAM' : '📷 ECHTES FOTO · ' + clock(p.foto.t) + ' UHR'}</span></div>` : ''}
-      <div class="cellpic">${cellSvg(p.level, 'me')}<div class="cap"><span>${p.foto ? 'Deine Stufe als Zeichnung' : 'Deine Zelle'}</span><span>${esc(p.cellTitle)}</span></div></div>
       ${!p.foto && p.cell != null ? `<div class="note" style="margin-top:8px">${p.onCam ? '🎥 Die Kamera ist gerade bei dir – gleich gibt es hier ein echtes Foto.' : '📷 Noch kein echtes Foto – sobald die Stream-Kamera in deine Zelle schaut, erscheint es hier.'}</div>` : ''}
       <div class="facts">
         <div><b class="num">${fmt(p.points)}</b><span>Macht-Punkte</span></div>
