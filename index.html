@@ -177,6 +177,11 @@
   .block .bh small { margin-left: auto; font: 700 12px var(--body); color: var(--muted); letter-spacing: .5px; text-transform: none; }
   .lv { display: grid; grid-template-columns: 112px 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line); }
   .lv svg { display: block; width: 112px; height: auto; border-radius: 9px; border: 1px solid var(--line2); }
+  /* echte Fotos der Stufen 1–25 (23.11.), Regenbogen-Name ab 23, Haustier */
+  .lv .lvImg { display: block; width: 112px; aspect-ratio: 640 / 592; object-fit: cover; border-radius: 9px; border: 1px solid var(--line2); background: #111; }
+  .rb { background: linear-gradient(90deg, #ff4b4b, #ff9a3c, #ffe14a, #59e36b, #4ac8ff, #b46bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lv .pet { font-size: 18px; }
+  @media (max-width: 400px) { .lv .lvImg { width: 84px; } }
   .lv .nm { font: 400 20px/1.05 var(--head); letter-spacing: .4px; }
   .lv .nm small { display: block; font: 600 13px var(--body); color: var(--muted); letter-spacing: 0; margin-top: 3px; }
   .lv .need { text-align: right; font: 400 18px var(--head); white-space: nowrap; }
@@ -326,7 +331,7 @@
 
   <!-- Stufen -->
   <section id="v-stufen" class="view">
-    <h2>Alle 20 Stufen</h2>
+    <h2>Alle 25 Stufen</h2>
     <p class="muted" style="margin:-4px 0 0">Wer im LIVE mitmacht, steigt auf. Mit jeder Stufe wird deine Zelle live im Spiel umgebaut – und alle fünf Stufen ziehst du einen Block höher.</p>
     <div id="stufenBox"></div>
   </section>
@@ -338,7 +343,7 @@
       <div class="step"><div><b>Komm in den LIVE</b><p>Gitterkönig läuft im TikTok-LIVE von <a href="https://www.tiktok.com/@gitterkoenig" target="_blank" rel="noopener">@gitterkoenig</a>. Momo, der Knast-Boss, führt dich durch den Block.</p></div></div>
       <div class="step"><div><b>Mitmachen = eigene Zelle</b><p>Wer im LIVE mitmacht, zieht ein – mit seinem Namen über der Tür. Schreiben musst du dafür nichts.</p></div></div>
       <div class="step"><div><b>Aufsteigen</b><p>Wer mitmacht, steigt höher. Mit jeder Stufe wird deine Zelle live ausgebaut: von der Dreckszelle bis zur Kronen-Suite.</p></div></div>
-      <div class="step"><div><b>★ Prestige nach Stufe 20</b><p>Stufe 20 ist nicht das Ende: Ist sie voll, kommt Prestige. Du startest wieder bei Stufe 1, aber mit Stern – erst Silber, dann Gold, Diamant und Legende. Dein Platz in der Rangliste bleibt.</p></div></div>
+      <div class="step"><div><b>★ Bis Stufe 25 – dann bist du MAX</b><p>Nach Stufe 20 geht es einfach weiter bis Stufe 25 – keiner fängt wieder bei 1 an. Ab Stufe 5 wohnt ein Haustier vor deiner Zelle (Huhn, Hase, Katze, Fuchs, Wolf, Panda, Eisbär, Geist bis zum Mini-Enderdrachen), ab Stufe 23 leuchtet dein Name in Regenbogenfarben. Wie jede Zelle aussieht, siehst du unter „Stufen“.</p></div></div>
       <div class="step"><div><b>Platz 1 wird Gitterkönig</b><p>Wer ganz oben steht, sitzt im Glaskäfig auf dem Thron über dem Schacht. Wer den König überholt, stürzt ihn ins Loch.</p></div></div>
       <div class="step"><div><b>Massenausbruch</b><p>Ist das Ausbruch-Meter voll, gehen alle Türen auf. Schreib schnell <span class="kbd">Flucht</span> in den Chat – die ersten fünf kommen raus und kriegen Fluchtbeute.</p></div></div>
       <div class="step"><div><b>📲 WhatsApp-Kanal</b><p>Alle News zuerst: wann der LIVE startet, wer Gitterkönig der Woche ist und was als Nächstes gebaut wird. <a href="https://whatsapp.com/channel/0029VbEgmqf4o7qE9rlr9U0A" target="_blank" rel="noopener">Jetzt folgen</a> (kostenlos, WhatsApp ab 13).</p></div></div>
@@ -541,8 +546,8 @@
       ? `<div class="missing">Noch keine eigene Zelle. <b>Mach im LIVE mit</b>, dann ziehst du ein.</div>`
       : nx ? `<div class="row"><span>Stufe ${p.level}</span><span>${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</span><span>Stufe ${nx.level}</span></div>${bar}
              <div class="missing"><b class="num">${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</b> geschafft bis Stufe ${nx.level} · ${esc(nx.name)}<br><span class="muted">Dann bekommt deine Zelle: ${esc(nx.title)}${nx.block !== p.block ? ` – und du ziehst in Block ${nx.block}!` : ''}</span></div>`
-        : `<div class="row"><span>Stufe 20</span><span>${Math.min(99, Math.floor(((p.prestigeNext && p.prestigeNext.frac) || 0) * 100))} %</span><span>★ ${esc(p.prestigeNext ? p.prestigeNext.name : 'Prestige')}</span></div>${bar}
-             <div class="missing"><b>Stufe 20</b> – die letzte Stufe dieser Runde. Ist sie voll, kommt <b>Prestige ★ ${esc(p.prestigeNext ? p.prestigeNext.name : '')}</b>: Du startest wieder bei Stufe 1, eine Klasse höher, und dein Platz in der Rangliste bleibt.</div>`
+        : `<div class="row"><span>Stufe ${p.level}</span><span>100 %</span><span class="rb">MAX</span></div><div class="pbar"><i style="width:100%"></i></div>
+             <div class="missing"><b class="rb">Stufe ${p.level} – MAX!</b> Höher geht es nicht: Drachen-Thron, Mini-Enderdrache vor der Tür und Regenbogen-Name. Unantastbar.</div>`
     return `<div class="card akte">
       <div class="top"><span>Häftlingsakte · Nr. ${no}</span><span class="stamp">${p.where === 'throne' ? 'König' : 'Gesucht'}</span></div>
       <div class="main">
@@ -605,7 +610,7 @@
       if (stufenFor === myL && $('stufenBox').innerHTML) return
       stufenFor = myL
       const groups = ['D', 'C', 'B', 'A'].map(b => ({ b, items: s.levels.filter(l => l.block === b) }))
-      $('stufenBox').innerHTML = groups.map(g => `<div class="block"><div class="bh"><span class="tg" style="background:${esc(g.items[0].color)}">${g.b}</span>Block ${g.b} · ${esc(g.items[0].blockName)}<small>Stufe ${g.items[0].level}–${g.items[g.items.length - 1].level}</small></div>${g.items.map(l => `<div class="lv ${l.level === myL ? 'mine' : l.level === myL + 1 ? 'next' : ''}">${cellSvg(l.level, 's' + l.level)}<div class="nm">${l.level}. ${esc(l.name)}<small>${esc(l.title)}</small>${l.level === myL ? '<span class="here">DU BIST HIER</span>' : ''}</div><div class="need num">${l.level === 1 ? 'Start' : l.level === 20 ? 'MAX' : ''}</div></div>`).join('')}</div>`).join('')
+      $('stufenBox').innerHTML = groups.map(g => `<div class="block"><div class="bh"><span class="tg" style="background:${esc(g.items[0].color)}">${g.b}</span>Block ${g.b} · ${esc(g.items[0].blockName)}<small>Stufe ${g.items[0].level}–${g.items[g.items.length - 1].level}</small></div>${g.items.map(l => `<div class="lv ${l.level === myL ? 'mine' : l.level === myL + 1 ? 'next' : ''}">${l.foto ? `<img class="lvImg" src="${esc(l.foto)}" alt="Zelle Stufe ${l.level}" loading="lazy">` : cellSvg(l.level, 's' + l.level)}<div class="nm">${l.level}. <span class="${l.rainbow ? 'rb' : ''}">${esc(l.name)}</span>${l.pet ? ` <span class="pet" title="${esc(l.petName)}">${l.pet}</span>` : ''}<small>${esc(l.title)}${l.petName ? ' · Haustier: ' + esc(l.petName) : ''}</small>${l.level === myL ? '<span class="here">DU BIST HIER</span>' : ''}</div><div class="need num">${l.level === 1 ? 'Start' : l.level === s.levels.length ? 'MAX' : ''}</div></div>`).join('')}</div>`).join('')
     } catch (_) {}
   }
 
