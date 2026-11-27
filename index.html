@@ -216,6 +216,7 @@
   /* WhatsApp (22.11. abends Community, sein Wort: „füg es in der Website ein … ich will viele Leute bekommen“; seit 23.11. mittags Kanal „GITTERKÖNIG - TIKTOK“, sein Wort: „Ich wechsel zu einem Kanal … pack das auf meine Website“) */
   .waTop { margin-left: 8px; width: 36px; height: 36px; flex: none; display: inline-grid; place-items: center; border-radius: 50%; background: #25d366; box-shadow: 0 0 0 3px rgba(37,211,102,.18); }
   .waTop svg { width: 20px; height: 20px; }
+  .zTop { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 7px 11px; border-radius: 999px; font: 800 12px var(--body); letter-spacing: .5px; text-decoration: none; color: #1a1208; background: #efe5cc; border: 1px solid #ffd23d; white-space: nowrap; }
   .wa { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin: 16px 0 4px; padding: 14px 14px; border-radius: 16px; background: linear-gradient(135deg, #0c3b25, #12693d); border: 1px solid #25d366; color: #fff; text-decoration: none; }
   .wa b { display: block; font: 800 16px var(--body); }
   .wa p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; color: #d6f5e3; }
@@ -338,6 +339,7 @@
       <b>GITTER<i>KÖNIG</i></b>
     </a>
     <a id="live" class="live" href="https://www.tiktok.com/@gitterkoenig/live" target="_blank" rel="noopener">Offline</a>
+    <a class="zTop" id="zTop" href="/zeitung" aria-label="Knast-Zeitung">📰 Zeitung</a>
     <a class="waTop" href="https://whatsapp.com/channel/0029VbEgmqf4o7qE9rlr9U0A" target="_blank" rel="noopener" aria-label="WhatsApp-Kanal folgen" title="WhatsApp-Kanal"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2.2A9.8 9.8 0 0 0 3.6 17l-1.3 4.7 4.8-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.8a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1.1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.4-.2z"/></svg></a>
   </div>
 </header>
@@ -454,6 +456,11 @@
   <div class="row2"><button class="btn small" id="pShare" type="button">Teilen</button><button class="btn small ghost" id="pSave" type="button">Bild speichern</button><button class="btn small ghost" id="pClose" type="button">Schließen</button></div>
 </div>
 
+<div class="poster" id="ausweisBox" role="dialog" aria-label="Häftlings-Ausweis">
+  <canvas id="aCv" width="1080" height="1350"></canvas>
+  <div class="row2"><button class="btn small" id="aShare" type="button">Teilen</button><button class="btn small ghost" id="aSave" type="button">Bild speichern</button><button class="btn small ghost" id="aClose" type="button">Schließen</button></div>
+</div>
+
 <script>
 (() => {
   'use strict'
@@ -478,6 +485,7 @@
   let API = ''
   const WA_LINK = 'https://whatsapp.com/channel/0029VbEgmqf4o7qE9rlr9U0A' // (WhatsApp-Kanal seit 23.11. mittags; vorher Community chat.whatsapp.com/IQgjKvRyBLn1VdLmpUOBbV)
   const ready = (async () => { if (/github\.io$/.test(location.hostname)) { try { const r = await fetch('adresse.json', { cache: 'no-store' }); API = (await r.json()).api || '' } catch (_) {} } })()
+  ready.then(() => { const z = document.getElementById('zTop'); if (z && API) z.href = API + '/zeitung' })
   const get = async (p) => { await ready; const r = await fetch(API + p, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json() }
 
   // ------------------------------------------------------------ Zelle als Bild (je Stufe gezeichnet)
@@ -660,7 +668,7 @@
         <div><b>${p.rank ? fmt(p.rank) + '.' : '–'}</b><span>Platz${p.of ? ' von ' + fmt(p.of) : ''}</span></div>
         <div><b>${day(p.since)}</b><span>Dabei seit</span></div>
       </div>
-      <div class="actions"><button class="btn small" id="plakat" type="button">🚨 Fahndungsplakat</button><button class="btn small ghost" id="share" type="button">Link teilen</button><a class="btn small ghost" href="#rang">Rangliste</a></div>
+      <div class="actions"><button class="btn small" id="ausweis" type="button">🪪 Meinen Ausweis holen</button><button class="btn small ghost" id="plakat" type="button">🚨 Fahndungsplakat</button><button class="btn small ghost" id="share" type="button">Link teilen</button><a class="btn small ghost" href="#rang">Rangliste</a></div>
       <a class="waCta" href="${WA_LINK}" target="_blank" rel="noopener"><span>📲 Willst du wissen, wann der Knast wieder live ist und wie deine Zelle wächst?</span><b>WhatsApp-Kanal →</b></a>
     </div>`
   }
@@ -802,6 +810,91 @@
       if (posterBlob) { const file = new File([posterBlob], 'gitterkoenig-' + posterName + '.png', { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'GESUCHT bei GITTERKÖNIG', text: 'Meine Zelle bei GITTERKÖNIG – gitterkoenig.github.io' }); return } }
     } catch (_) { return }
     saveBlob()
+  })
+
+  // ------------------------------------------------------------ HÄFTLINGS-AUSWEIS (27.11.2026)
+  // Karte 1080x1350 im Browser gezeichnet. Profilbild über /avatar?name= (eigener Proxy, sonst „tainted“ Canvas);
+  // klappt das nicht, bleibt die gezeichnete Platzhalter-Figur. Keine Bitten, keine Coins.
+  let ausBlob = null; let ausName = ''
+  async function openAusweis (p) {
+    if (!p) return
+    const cv = $('aCv'); const g = cv.getContext('2d'); const W = 1080; const H = 1350
+    const Y = '#ffd23d'; const O = '#ff8a1f'; const INK = '#0b0b0d'
+    g.textBaseline = 'alphabetic'; g.textAlign = 'center'
+    g.fillStyle = INK; g.fillRect(0, 0, W, H)
+    // Gitter-Muster
+    g.strokeStyle = 'rgba(255,210,61,.07)'; g.lineWidth = 10
+    for (let x = 30; x < W; x += 60) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke() }
+    g.lineWidth = 6; for (const y of [90, 520, 1010]) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke() }
+    // Warnstreifen oben und unten
+    const tape = y => { g.save(); g.beginPath(); g.rect(0, y, W, 34); g.clip(); g.fillStyle = Y; g.fillRect(0, y, W, 34); g.fillStyle = INK; for (let x = -60; x < W + 60; x += 60) { g.beginPath(); g.moveTo(x, y + 34); g.lineTo(x + 30, y + 34); g.lineTo(x + 64, y); g.lineTo(x + 34, y); g.fill() } g.restore() }
+    tape(0); tape(H - 34)
+    // Krone + Titel
+    g.save(); g.translate(540 - 70, 62); g.scale(4.4, 4.4); g.fillStyle = Y; g.fill(new Path2D('M3 10l6 6 7-11 7 11 6-6-3 15H6z')); g.fillRect(6, 26, 20, 3); g.restore()
+    g.fillStyle = Y; fitText(g, 'GITTERKÖNIG', 540, 262, 900, 118, '900', HEAD)
+    g.fillStyle = O; g.font = `800 40px ${BODY}`; g.fillText('H Ä F T L I N G S - A U S W E I S', 540, 318)
+    // Karte
+    const cx = 56; const cy = 352; const cw = 968; const ch = 880
+    g.fillStyle = '#16161b'; rr(g, cx, cy, cw, ch, 30); g.fill()
+    g.strokeStyle = Y; g.lineWidth = 8; rr(g, cx, cy, cw, ch, 30); g.stroke()
+    g.strokeStyle = O; g.lineWidth = 3; rr(g, cx + 14, cy + 14, cw - 28, ch - 28, 22); g.stroke()
+    // Foto
+    const fx = cx + 52; const fy = cy + 56; const fs = 330
+    g.fillStyle = '#26262e'; g.fillRect(fx, fy, fs, fs)
+    let img = null; try { img = await loadImg(API + '/avatar?name=' + encodeURIComponent(p.name)) } catch (_) { img = null }
+    if (img) { const r = Math.max(fs / img.width, fs / img.height); const w = img.width * r; const h = img.height * r; g.save(); g.beginPath(); g.rect(fx, fy, fs, fs); g.clip(); g.drawImage(img, fx + (fs - w) / 2, fy + (fs - h) / 2, w, h); g.restore() }
+    else { // Platzhalter: Häftling im Overall
+      g.save(); g.beginPath(); g.rect(fx, fy, fs, fs); g.clip()
+      g.fillStyle = O; g.beginPath(); g.ellipse(fx + fs / 2, fy + fs + 20, 150, 140, 0, 0, Math.PI * 2); g.fill()
+      g.fillStyle = '#e8c9a0'; g.beginPath(); g.arc(fx + fs / 2, fy + 125, 70, 0, Math.PI * 2); g.fill()
+      g.fillStyle = '#1a1208'; g.fillRect(fx + fs / 2 - 36, fy + 112, 16, 16); g.fillRect(fx + fs / 2 + 20, fy + 112, 16, 16)
+      g.fillStyle = INK; g.font = `900 34px ${HEAD}`; g.fillText('069', fx + fs / 2, fy + 290); g.restore()
+    }
+    g.strokeStyle = Y; g.lineWidth = 8; g.strokeRect(fx, fy, fs, fs)
+    // Name & Zelle rechts
+    const rx = fx + fs + 44; const rw = cx + cw - 52 - rx
+    g.textAlign = 'left'
+    g.fillStyle = '#9a9aa6'; g.font = `700 26px ${BODY}`; g.fillText('HÄFTLING  Nr. ' + String(p.no).padStart(6, '0'), rx, fy + 34)
+    g.fillStyle = '#fff'; let s = 66; do { g.font = `900 ${s}px ${HEAD}`; s -= 3 } while (g.measureText(p.name).width > rw && s > 24); g.fillText(p.name, rx, fy + 110)
+    if (p.nick) { g.fillStyle = '#c9c9d2'; g.font = `600 30px ${BODY}`; let nk = String(p.nick); while (g.measureText(nk).width > rw && nk.length > 3) nk = nk.slice(0, -2); g.fillText(nk === p.nick ? nk : nk + '…', rx, fy + 156) }
+    g.fillStyle = Y; g.font = `900 30px ${BODY}`; g.fillText('ZELLE', rx, fy + 222)
+    g.fillStyle = '#fff'; g.font = `900 100px ${HEAD}`; g.fillText(p.cell != null ? String(p.cell) : '–', rx, fy + 312)
+    if (p.abo) { // Abo-Krone
+      g.fillStyle = Y; rr(g, rx + 190, fy + 252, 170, 60, 30); g.fill()
+      g.save(); g.translate(rx + 206, fy + 262); g.scale(1.3, 1.3); g.fillStyle = INK; g.fill(new Path2D('M3 10l6 6 7-11 7 11 6-6-3 15H6z')); g.restore()
+      g.fillStyle = INK; g.font = `900 28px ${BODY}`; g.fillText('ABO', rx + 262, fy + 293)
+    }
+    // Werte
+    const stat = (x, y, w, label, big, small) => {
+      g.fillStyle = '#1f1f26'; rr(g, x, y, w, 190, 20); g.fill(); g.strokeStyle = 'rgba(255,210,61,.35)'; g.lineWidth = 2; rr(g, x, y, w, 190, 20); g.stroke()
+      g.textAlign = 'center'; g.fillStyle = O; g.font = `800 25px ${BODY}`; g.fillText(label, x + w / 2, y + 44)
+      g.fillStyle = '#fff'; let z = 74; do { g.font = `900 ${z}px ${HEAD}`; z -= 4 } while (g.measureText(big).width > w - 30 && z > 24); g.fillText(big, x + w / 2, y + 118)
+      if (small) { g.fillStyle = '#b8b8c4'; g.font = `600 25px ${BODY}`; let t = small; while (g.measureText(t).width > w - 24 && t.length > 4) t = t.slice(0, -2); g.fillText(t === small ? t : t + '…', x + w / 2, y + 160) }
+    }
+    const sx = cx + 40; const sw = (cw - 80 - 24) / 2; const sy = cy + 440
+    stat(sx, sy, sw, 'STUFE', String(p.level), p.levelName)
+    stat(sx + sw + 24, sy, sw, 'MINISPIEL-SIEGE', fmt(p.mgWins || 0), (p.mgWeek ? p.mgWeek + ' diese Woche' : 'Knast-Spiele'))
+    stat(sx, sy + 214, sw, p.streak > 0 ? 'HAFT-TAGE' : 'DABEI SEIT', p.streak > 0 ? String(p.streak) : day(p.since), p.streak > 0 ? 'am Stück im Knast' : 'Häftling')
+    stat(sx + sw + 24, sy + 214, sw, 'RANG', p.rank ? p.rank + '.' : '–', p.of ? 'von ' + fmt(p.of) + ' Häftlingen' : 'Block ' + p.block)
+    // Fuß
+    g.textAlign = 'center'
+    g.fillStyle = '#fff'; g.font = `800 38px ${BODY}`; g.fillText('Komm in den Knast: TikTok LIVE · Gitterkönig', 540, 1282)
+    g.fillStyle = Y; g.font = `700 26px ${BODY}`; g.fillText('@gitterkoenig', 540, 1316 - 2)
+    ausName = String(p.name).replace(/^@/, '')
+    ausBlob = null
+    try { ausBlob = await new Promise(ok => cv.toBlob(ok, 'image/png')) } catch (_) { ausBlob = null }
+    $('ausweisBox').classList.add('on')
+  }
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#ausweis')) openAusweis(lastCard) })
+  $('aClose').addEventListener('click', () => $('ausweisBox').classList.remove('on'))
+  $('ausweisBox').addEventListener('click', e => { if (e.target.id === 'ausweisBox') $('ausweisBox').classList.remove('on') })
+  const saveAus = () => { if (!ausBlob) { toast('Bild geht in diesem Browser nicht – mach einen Screenshot'); return } const a = document.createElement('a'); a.href = URL.createObjectURL(ausBlob); a.download = 'haeftlings-ausweis-' + ausName + '.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove() }, 2000) }
+  $('aSave').addEventListener('click', saveAus)
+  $('aShare').addEventListener('click', async () => {
+    try {
+      if (ausBlob) { const file = new File([ausBlob], 'haeftlings-ausweis-' + ausName + '.png', { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Mein Häftlings-Ausweis · GITTERKÖNIG' }); return } }
+    } catch (_) { return }
+    saveAus()
   })
 
   // ------------------------------------------------------------ FLUCHT-NACHT (24.11.2026)
