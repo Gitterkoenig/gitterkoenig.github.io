@@ -731,10 +731,16 @@
       const d = await get('/api/plan')
       planNames = d.names || {}
       // (22.11. nachts: Halle in die Höhe – Etagen kommen vom Server, alte Daten ohne floors = 5 Etagen)
-      const F = Number(d.floors) || 5; const PS = F * 2
-      const segs = Math.ceil(d.cells / PS); const S = 12; const G = 2; const MID = 12
+      const F = Number(d.floors) || 5; const BF = Number(d.baseFloors) || F; const PS = BF * 2
+      // (27.11.: 12 Etagen – die oberen beiden haben die Nummern ab extraBase, je Abschnitt extraPer)
+      const XB = Number(d.extraBase) || 0; const XP = Number(d.extraPer) || 0
+      const segs = XB ? XB / PS : Math.ceil(d.cells / PS); const S = 12; const G = 2; const MID = 12
       const W = segs * (S + G) + 4; const H = 2 * F * (S + G) + MID + 4
-      const pos = no => { const i = no - 1; const seg = Math.floor(i / PS); const w = i % PS; const fl = Math.floor(w / 2); const side = w % 2; return { x: 2 + seg * (S + G), y: side === 0 ? 2 + (F - 1 - fl) * (S + G) : 2 + F * (S + G) + MID + (F - 1 - fl) * (S + G) } }
+      const pos = no => {
+        let seg; let fl; let side
+        if (XB && XP && no > XB) { const i = no - XB - 1; seg = Math.floor(i / XP); const w = i % XP; fl = BF + Math.floor(w / 2); side = w % 2 } else { const i = no - 1; seg = Math.floor(i / PS); const w = i % PS; fl = Math.floor(w / 2); side = w % 2 }
+        return { x: 2 + seg * (S + G), y: side === 0 ? 2 + (F - 1 - fl) * (S + G) : 2 + F * (S + G) + MID + (F - 1 - fl) * (S + G) }
+      }
       let s = ''
       for (let no = 1; no <= d.cells; no++) {
         const lv = parseInt(d.lv[no - 1], 36) || 0; const p = pos(no)
