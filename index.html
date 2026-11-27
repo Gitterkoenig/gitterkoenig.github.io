@@ -637,7 +637,7 @@
     const nx = p.next
     const bar = `<div class="pbar"><i style="width:${pct}%"></i></div>`
     const prog = p.cell == null
-      ? `<div class="missing">Noch keine eigene Zelle. <b>Mach im LIVE mit</b>, dann ziehst du ein.</div>`
+      ? (p.lastCell ? `<div class="missing">Deine Zelle ${p.lastCell} wartet auf dich. <b>Komm in den LIVE</b> – du machst genau da weiter, wo du warst (Stufe ${p.level}).</div>` : `<div class="missing">Noch keine eigene Zelle. <b>Mach im LIVE mit</b>, dann ziehst du ein.</div>`)
       : nx ? `<div class="row"><span>Stufe ${p.level}</span><span>${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</span><span>Stufe ${nx.level}</span></div>${bar}
              <div class="missing"><b class="num">${Math.min(99, Math.floor((nx.frac || 0) * 100))} %</b> geschafft bis Stufe ${nx.level} · ${esc(nx.name)}<br><span class="muted">Dann bekommt deine Zelle: ${esc(nx.title)}${nx.block !== p.block ? ` – und du ziehst in Block ${nx.block}!` : ''}</span></div>`
         : `<div class="row"><span>Stufe ${p.level}</span><span>100 %</span><span class="rb">MAX</span></div><div class="pbar"><i style="width:100%"></i></div>
@@ -651,7 +651,7 @@
           ${p.nick ? `<div class="nick">${esc(p.name)}</div>` : ''}
           <div class="badges">
             <span class="bd blk" style="background:${esc(p.color)}">BLOCK ${esc(p.block)}</span>
-            ${p.cell != null ? `<span class="bd zelle">Zelle ${p.cell}</span>` : ''}
+            ${p.cell != null ? `<span class="bd zelle">Zelle ${p.cell}</span>` : p.lastCell ? `<span class="bd zelle">Zelle ${p.lastCell}</span>` : ''}
             ${p.prestige > 0 ? `<span class="bd pst">★ ${esc(p.prestigeName)}</span>` : ''}
             ${p.rank ? `<span class="bd">Platz ${fmt(p.rank)}</span>` : ''}
             <span class="bd">${w[0]} ${w[1]}</span>
